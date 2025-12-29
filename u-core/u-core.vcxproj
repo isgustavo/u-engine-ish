@@ -140,8 +140,12 @@
     <ClCompile Include="ImGui\imgui_draw.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\entities\UEntity.cpp" />
+    <ClCompile Include="src\math\UFloat2D.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\UAsset.cpp" />
     <ClCompile Include="src\UEngine.cpp" />
+    <ClCompile Include="src\UScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imconfig-SFML.h" />
@@ -254,7 +258,12 @@
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowBase.hpp" />
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowEnums.hpp" />
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowHandle.hpp" />
+    <ClInclude Include="src\entities\UEntity.h" />
+    <ClInclude Include="src\math\UFloat2D.h" />
+    <ClInclude Include="src\UAsset.h" />
     <ClInclude Include="src\UEngine.h" />
+    <ClInclude Include="src\UEntityManager.h" />
+    <ClInclude Include="src\UScene.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SFML-3.0.2\include\SFML\Audio\SoundFileFactory.inl" />
