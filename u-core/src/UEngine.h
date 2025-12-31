@@ -22,8 +22,8 @@ namespace uei
 			: width(inWidth), height(inHeight), bShowGrid(false), gridSize(inGridSize), renderWindow(sf::VideoMode({ width, height }), windowName)
 		{
 
-			assets = UAsset();
-			assets.LoadFromFile(assetFilePath);
+			assets = std::make_unique<UAsset>();
+			assets->LoadFromFile(assetFilePath);
 
 			renderWindow.setFramerateLimit(framerateLimit);
 			ImGui::SFML::Init(renderWindow);
@@ -36,6 +36,10 @@ namespace uei
 		{
 			scenes.push_back(std::make_unique<T>(*this));
 		}
+
+		uei::UAsset& Assets();
+		sf::RenderWindow& RenderWindow();
+
 		void Start();
 		void Update();
 
@@ -47,7 +51,7 @@ namespace uei
 		sf::Font font;
 		sf::RenderWindow renderWindow;
 
-		uei::UAsset assets;
+		std::unique_ptr<uei::UAsset> assets;
 		uei::UScene* currentScene;
 		std::vector<std::unique_ptr<uei::UScene>> scenes;
 

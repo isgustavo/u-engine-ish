@@ -11,25 +11,16 @@ namespace uei
 
 	class UScene
 	{
-
 		friend UEngine;
 
 	public:
-		UScene(const uei::UEngine& inEngine) :
+		UScene(uei::UEngine& inEngine) :
 			engine(&inEngine), 
 			entities(), entitiesMap(), toAdd(),
-			bIsPause(false)
-		{
+			bIsPause(false) { }
 
-		}
-
-		template<typename T>
-		UEntity& AddEntity(const std::string& inTag)
-		{
-			toAdd.push_back(std::make_unique<T>(entities.size(), inTag));
-			return *toAdd.back();
-		}
-
+		UEntity& AddEntity(const std::string& inTag);
+		//uei::UEngine& Engine();
 		//const std::vector<std::shared_ptr<Entity>>& GetEntities();
 		//const std::vector<std::shared_ptr<Entity>>& GetEntitiesByTag(const std::string& inTag);
 
@@ -37,10 +28,12 @@ namespace uei
 		virtual void OnUpdate() = 0;
 		virtual void OnDraw() = 0;
 
-	private:
-		const uei::UEngine* engine;
-		
+	protected:
+		uei::UEngine* engine;
+
 		std::vector<std::unique_ptr<uei::UEntity>> entities;
+
+	private:	
 		std::map<std::string, std::vector<uei::UEntity*>> entitiesMap;
 		std::vector<std::unique_ptr<uei::UEntity>> toAdd;
 

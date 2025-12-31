@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\SFML-3.0.2\include;$(SolutionDir)$(ProjectName)\ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\SFML-3.0.2\include;$(SolutionDir)$(ProjectName)\ImGui;$(SolutionDir)$(ProjectName)\src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -126,7 +126,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\SFML-3.0.2\include;$(SolutionDir)$(ProjectName)\ImGui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\SFML-3.0.2\include;$(SolutionDir)$(ProjectName)\ImGui;$(SolutionDir)$(ProjectName)\src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -140,6 +140,9 @@
     <ClCompile Include="ImGui\imgui_draw.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\components\CSprite.cpp" />
+    <ClCompile Include="src\components\UComponent.cpp" />
+    <ClCompile Include="src\components\CTransform.cpp" />
     <ClCompile Include="src\entities\UEntity.cpp" />
     <ClCompile Include="src\math\UFloat2D.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -258,6 +261,9 @@
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowBase.hpp" />
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowEnums.hpp" />
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowHandle.hpp" />
+    <ClInclude Include="src\components\CSprite.h" />
+    <ClInclude Include="src\components\UComponent.h" />
+    <ClInclude Include="src\components\CTransform.h" />
     <ClInclude Include="src\entities\UEntity.h" />
     <ClInclude Include="src\math\UFloat2D.h" />
     <ClInclude Include="src\UAsset.h" />

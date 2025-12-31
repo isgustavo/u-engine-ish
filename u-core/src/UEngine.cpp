@@ -14,6 +14,14 @@
 
 namespace uei
 {
+    uei::UAsset& UEngine::Assets()
+    {
+        return *assets;
+    }
+    sf::RenderWindow& UEngine::RenderWindow()
+    {
+        return renderWindow;
+    }
     void UEngine::Start()
     {
         currentScene = scenes.back().get();

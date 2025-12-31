@@ -1,8 +1,20 @@
 #include "UScene.h"
 #include "entities/UEntity.h"
 
+#include <string>
+#include <memory>
+
 namespace uei
 {
+	UEntity& UScene::AddEntity(const std::string& inTag)
+	{
+		toAdd.push_back(std::unique_ptr<UEntity>(new UEntity(entities.size(), inTag)));
+		return *toAdd.back();
+	}
+	/*UEngine& UScene::Engine()
+	{
+		return *engine;
+	}*/
 	void UScene::Start()
 	{
 		OnStart();

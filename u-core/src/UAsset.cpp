@@ -62,4 +62,11 @@ namespace uei
 			fonts.erase(name);
 		}
 	}
+	
+	const sf::Texture& UAsset::GetTexture(const std::string& textureName) const
+	{
+		auto it = textures.find(textureName);
+		assert(it != textures.end());
+		return it->second;
+	}
 }
