@@ -140,6 +140,7 @@
     <ClCompile Include="ImGui\imgui_draw.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\components\CAnimation.cpp" />
     <ClCompile Include="src\components\CSprite.cpp" />
     <ClCompile Include="src\components\UComponent.cpp" />
     <ClCompile Include="src\components\CTransform.cpp" />
@@ -261,6 +262,7 @@
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowBase.hpp" />
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowEnums.hpp" />
     <ClInclude Include="SFML-3.0.2\include\SFML\Window\WindowHandle.hpp" />
+    <ClInclude Include="src\components\CAnimation.h" />
     <ClInclude Include="src\components\CSprite.h" />
     <ClInclude Include="src\components\UComponent.h" />
     <ClInclude Include="src\components\CTransform.h" />

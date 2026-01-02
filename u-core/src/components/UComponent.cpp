@@ -2,7 +2,7 @@
 
 namespace uei
 {
-	bool uei::UComponent::GetExists() const
+	bool UComponent::GetExists() const
 	{
 		return bExists;
 	}
