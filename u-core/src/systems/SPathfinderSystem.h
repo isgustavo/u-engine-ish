@@ -38,9 +38,9 @@ namespace uei
         std::vector<uei::Node*> openVector;
         std::vector<uei::Node*> closeVector;
 
-        const std::vector<sf::Vector2i> FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate);
+        const std::vector<sf::Vector2i> FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate, const sf::Vector2i& inSourceSize);
         void SetGridCoordinateMoves();
-        bool IsOutOfNavGrid(const sf::Vector2i& inCoordinate);
+        bool IsOutOfNavGrid(const sf::Vector2i& inCoordinate, const sf::Vector2i& inMove, const sf::Vector2i& inSize);
         uei::Node* FindNode(const std::vector<uei::Node*>& inNodes, const sf::Vector2i& coordinate);
         int GetHeuristicCost(const sf::Vector2i& inCoordinate, const sf::Vector2i& inTargetCoordinate);
     };

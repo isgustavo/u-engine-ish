@@ -60,13 +60,14 @@ namespace uei
 
 			e->AddComponent<uei::CPath>(
 				FindPath(sf::Vector2i(c_transform->Position().x / navGridSqrSize, c_transform->Position().y / navGridSqrSize),
-					sf::Vector2i(c_pathRequest->TargetPosition().x / navGridSqrSize, c_pathRequest->TargetPosition().y / navGridSqrSize))
+					sf::Vector2i(c_pathRequest->TargetPosition().x / navGridSqrSize, c_pathRequest->TargetPosition().y / navGridSqrSize),
+						c_agent->GridSize())
 			);
 			e->RemoveComponent<uei::CPathRequest>();
 		}
 	}
 
-	const std::vector<sf::Vector2i> SPathfinderSystem::FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate)
+	const std::vector<sf::Vector2i> SPathfinderSystem::FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate, const sf::Vector2i& inSourceSize)
 	{
 		std::cout << "FindPath" << std::endl;
 		std::cout << inSourceCoordinate.x << "," << inSourceCoordinate.y << std::endl;
@@ -101,16 +102,17 @@ namespace uei
 			for (size_t i = 0; i < gridCoordinateMoves.size(); i++)
 			{
 				const sf::Vector2i newCoordinate(currentNode->position + gridCoordinateMoves[i]);
-				std::cout << newCoordinate.x << "," << newCoordinate.y << std::endl;
-				const int newCoordinateIndex = (newCoordinate.x * navGridColumnSize) + newCoordinate.y;
-				if (IsOutOfNavGrid(newCoordinate) ||
+				//std::cout << newCoordinate.x << "," << newCoordinate.y << std::endl;
+				//const int newCoordinateIndex = (newCoordinate.x * navGridColumnSize) + newCoordinate.y;
+				if (IsOutOfNavGrid(currentNode->position, gridCoordinateMoves[i], inSourceSize) ||
 					FindNode(closeVector, newCoordinate))
 				{
 					continue;
 				}
 
+				const int newCoordinateIndex = (newCoordinate.x * navGridColumnSize) + newCoordinate.y;
 				const int newCoordinateCost = currentNode->G + (((i < 4) ? 100 : 142) + navGrid[newCoordinateIndex]);
-				std::cout << "FindNode" << std::endl;
+
 				Node* newCoordinateNode = FindNode(openVector, newCoordinate);
 				if (newCoordinateNode == nullptr)
 				{
@@ -149,19 +151,36 @@ namespace uei
 
 		return path;
 	}
-	bool SPathfinderSystem::IsOutOfNavGrid(const sf::Vector2i& inCoordinate)
+	bool SPathfinderSystem::IsOutOfNavGrid(const sf::Vector2i& inCoordinate, const sf::Vector2i& inMove, const sf::Vector2i& inSize)
 	{
-		if (inCoordinate.x < 0 || inCoordinate.x >= navGridColumnSize ||
-			inCoordinate.y < 0 || inCoordinate.y >= navGridColumnSize)
+		const sf::Vector2i newCoordinate(inCoordinate + inMove);
+		bool isDiagonalMove = inMove.x != 0 && inMove.y != 0;
+		if (isDiagonalMove)
 		{
-			std::cout << "IsOutOfNavGrid" << std::endl;
-			return true;
+			if ((navGrid[(inCoordinate.x + inMove.x) * navGridColumnSize + inCoordinate.y] == -1) ||
+				(navGrid[(inCoordinate.x * navGridColumnSize) + inCoordinate.y + inMove.y] == -1))
+			{
+				std::cout << "IsOutOfNavGrid at Diagonal == -1" << std::endl;
+				return true;
+			}
 		}
-
-		if (navGrid[inCoordinate.x * navGridColumnSize + inCoordinate.y] == -1)
+		for (int i = newCoordinate.x; i < newCoordinate.x + inSize.x; i++)
 		{
-			std::cout << "IsOutOfNavGrid == -1" << std::endl;
-			return true;
+			for (int j = newCoordinate.y; j < newCoordinate.y + inSize.y; j++)
+			{
+				if (i < 0 || i >= navGridColumnSize ||
+					j < 0 || j >= navGridColumnSize)
+				{
+					std::cout << "IsOutOfNavGrid" << std::endl;
+					return true;
+				}
+
+				if (navGrid[i * navGridColumnSize + j] == -1)
+				{
+					std::cout << "IsOutOfNavGrid == -1" << std::endl;
+					return true;
+				}
+			}
 		}
 
 		return false;

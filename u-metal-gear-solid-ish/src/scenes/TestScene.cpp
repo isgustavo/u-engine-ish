@@ -43,7 +43,8 @@ void TestScene::OnStart()
 				(j * engine.GridSize().y)
 			));
 
-			if ((i >= 4 && i <= 6) && (j >= 4 && j <= 6))
+			if (((i >= 4 && i <= 6) && (j >= 4 && j <= 6)) ||
+				(i >= 4 && i <= 6) && (j >= 8 && j <= 9))
 			{
 				newEntity.AddComponent<uei::CNavGridModifier>(1, 1, -1);
 				newEntity.AddComponent<uei::CRect>(engine.GridSize(), sf::Color(29.f, 36.f, 41.f));
@@ -69,14 +70,14 @@ void TestScene::OnStart()
 		(2.f * engine.GridSize().x),
 		(2.f * engine.GridSize().y)
 	));
-	agent.AddComponent<uei::CAgent>(engine.GridSize());
+	agent.AddComponent<uei::CAgent>(engine.GridSize(), sf::Vector2i(1,1));
 	agent.AddComponent<uei::CPathRequest>(sf::Vector2f(
 		(8.f * engine.GridSize().x),
 		(8.f * engine.GridSize().y)
 	));
 
 	SetNavGridDirty();
-	AddSystem<uei::SPathfinderSystem>(uei::Heuristic::ManhattanOctagonal, navGrid, navGridColumnSize, navGridSqrSize);
+	AddSystem<uei::SPathfinderSystem>(uei::Heuristic::Manhattan, navGrid, navGridColumnSize, navGridSqrSize);
 }
 void TestScene::OnUpdate()
 {
