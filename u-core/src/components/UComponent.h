@@ -5,11 +5,9 @@ namespace uei
 	class UComponent
 	{
 	public:
-		UComponent() : bExists(false) {}
-		UComponent(bool InExists) : bExists(InExists) {}
+		UComponent()
+		{
 
-		bool GetExists() const;
-	protected:
-		bool bExists;
+		}
 	};
 }

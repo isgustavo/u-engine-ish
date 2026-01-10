@@ -1,5 +1,4 @@
 #pragma once
-#include "math/UFloat2D.h"
 #include "UAsset.h"
 #include "UScene.h"
 
@@ -18,9 +17,11 @@ namespace uei
 	{
 	public:
 		UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, 
-			uei::UFloat2D inGridSize, const std::string& fontPath, const std::string& assetFilePath)
-			: width(inWidth), height(inHeight), bShowGrid(false), gridSize(inGridSize), renderWindow(sf::VideoMode({ width, height }), windowName)
+			sf::Vector2f inGridSize, const std::string& fontPath, const std::string& assetFilePath)
+			: screenSize(sf::Vector2i(inWidth, inHeight)), bShowGrid(false), gridSize(inGridSize), renderWindow(sf::VideoMode({ inWidth, inHeight }), windowName)
 		{
+			rows = (size_t)(ScreenSize().x / GridSize().x);
+			columns = (size_t)(ScreenSize().y / GridSize().y);
 
 			assets = std::make_unique<UAsset>();
 			assets->LoadFromFile(assetFilePath);
@@ -39,15 +40,24 @@ namespace uei
 
 		uei::UAsset& Assets();
 		sf::RenderWindow& RenderWindow();
+		sf::Vector2i& ScreenSize();
+		sf::Vector2f& GridSize();
+		size_t Rows() { return rows; }
+		size_t Columns() { return columns; }
+
+		bool ShouldShowGrid() { return bShowTarget; }
 
 		void Start();
 		void Update();
 
 	private:
 
-		const unsigned int width, height;
+		sf::Vector2i screenSize;
+		size_t rows;
+		size_t columns;
 		bool bShowGrid;
-		uei::UFloat2D gridSize;
+		bool bShowTarget;
+		sf::Vector2f gridSize;
 		sf::Font font;
 		sf::RenderWindow renderWindow;
 
@@ -57,6 +67,6 @@ namespace uei
 
 		void TryShowGrid();
 		void ShowGrid();
-		void DrawLine(const uei::UFloat2D& p1, const uei::UFloat2D& p2);
+		void DrawLine(const sf::Vector2f& p1, const sf::Vector2f& p2);
 		};
 }

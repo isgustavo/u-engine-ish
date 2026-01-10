@@ -1,6 +1,6 @@
 #pragma once
 #include "UComponent.h"
-#include "math/UFloat2D.h"
+#include <SFML/System/Vector2.hpp>
 
 namespace uei
 {
@@ -8,14 +8,24 @@ namespace uei
 	{
 	public:
 
-		CTransform(const uei::UFloat2D& inPosition) : UComponent(true),
-			position(inPosition), positionLastUpdate(inPosition) {
+		CTransform(const sf::Vector2f& inPosition/*, sf::Vector2f& inInitialVelocity*/) : UComponent(),
+			position(inPosition), positionLastUpdate(position), bUpdate(true)/*, velocity(inInitialVelocity)*/
+		{
+
 		}
 
+		sf::Vector2f& Position();
+		void SetPosition(const sf::Vector2f& inPosition);
+		//void SetVelocity(const sf::Vector2f& inVelocity);
+		bool ShouldUpdate() const;
+
+		//void Update(const float deltaTime);
+
 	private:
-		uei::UFloat2D position;
-		uei::UFloat2D positionLastUpdate;
-		uei::UFloat2D velocity;
+		sf::Vector2f position;
+		sf::Vector2f positionLastUpdate;
+		bool bUpdate;
+		//sf::Vector2f velocity;
 		//Vec2f scale;
 		//float angle;
 	};

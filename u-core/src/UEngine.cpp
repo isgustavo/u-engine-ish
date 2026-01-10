@@ -1,6 +1,5 @@
 #include "UEngine.h"
 #include "UScene.h"
-#include "math/UFloat2D.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -21,6 +20,14 @@ namespace uei
     sf::RenderWindow& UEngine::RenderWindow()
     {
         return renderWindow;
+    }
+    sf::Vector2i& UEngine::ScreenSize()
+    {
+        return screenSize;
+    }
+    sf::Vector2f& UEngine::GridSize()
+    {
+        return gridSize;
     }
     void UEngine::Start()
     {
@@ -50,6 +57,7 @@ namespace uei
             
             ImGui::Begin("u-engine-ish");
             ImGui::Checkbox("Show grid", &bShowGrid);
+            ImGui::Checkbox("Show target", &bShowTarget);
             ImGui::End();
 
             if(currentScene != nullptr)
@@ -57,10 +65,11 @@ namespace uei
 
             renderWindow.clear();
             
-            TryShowGrid();
-            
             if (currentScene != nullptr)
                 currentScene->Draw();
+
+            if (bShowGrid)
+                ShowGrid();
 
             ImGui::SFML::Render(renderWindow);
             renderWindow.display();
@@ -69,43 +78,38 @@ namespace uei
         ImGui::SFML::Shutdown();
     }
 
-    void UEngine::TryShowGrid()
-    {
-        if (bShowGrid)
-            ShowGrid();
-    }
-
     void UEngine::ShowGrid()
     {
         sf::Text gridText(font, "", 12);
 
-        float leftX = renderWindow.getView().getCenter().x - (width * 0.5f);
-        float rightX = leftX + width + gridSize.x;
+        float leftX = renderWindow.getView().getCenter().x - (screenSize.x * 0.5f);
+        float rightX = leftX + screenSize.x + gridSize.x;
         float nextGridX = leftX - ((int)leftX % (int)gridSize.x);
 
         for (float x = nextGridX; x < rightX; x += gridSize.x)
         {
-            DrawLine(uei::UFloat2D(x, 0), uei::UFloat2D(x, height));
+            DrawLine(sf::Vector2f(x, 0), sf::Vector2f(x, screenSize.y));
         }
 
-        for (float y = 0; y < height; y += gridSize.y)
+        for (float y = 0; y < screenSize.y; y += gridSize.y)
         {
-            DrawLine(uei::UFloat2D(leftX, height - y), uei::UFloat2D(rightX, height - y));
+            DrawLine(sf::Vector2f(leftX, screenSize.y - y), sf::Vector2f(rightX, screenSize.y - y));
 
             for (float x = nextGridX; x < rightX; x += gridSize.x)
             {
                 std::string xCell = std::to_string((int)x / (int)gridSize.x);
-                std::string yCell = std::to_string((int)y / (int)gridSize.y);
+                int yTotalCell = (screenSize.y / gridSize.y) - 1;
+                std::string yCell = std::to_string(yTotalCell - ((int)y / (int)gridSize.y));
                 gridText.setString("(" + xCell + "," + yCell + ")");
-                gridText.setPosition({ x + 3, height - y - gridSize.y + 2 });
+                gridText.setPosition({ x + 3, screenSize.y - y - gridSize.y + 2 });
                 renderWindow.draw(gridText);
             }
         }
     }
 
-    void UEngine::DrawLine(const uei::UFloat2D& p1, const uei::UFloat2D& p2)
+    void UEngine::DrawLine(const sf::Vector2f& p1, const sf::Vector2f& p2)
     {
-        sf::Vertex line[] = { {{p1.x, p1.y}, sf::Color::White}, {{p2.x, p2.y}, sf::Color::White} };
+        sf::Vertex line[] = { {p1, sf::Color::White}, {p2, sf::Color::White} };
         renderWindow.draw(line, 2, sf::PrimitiveType::Lines);
     }
 }

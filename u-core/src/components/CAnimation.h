@@ -11,16 +11,16 @@ namespace uei
 	{
 	public:
 		CAnimation(const sf::Texture& inTexture, const int inFrameCount, const float inAnimationSpeed, 
-					const int inFrameWidth, const int inFrameHeight, const sf::Vector2f inScale) :
+					const int inFrameWidth, const int inFrameHeight, const sf::Vector2f inScale) : UComponent(),
 			frameCount(inFrameCount), animationSpeed(inAnimationSpeed),
-			frameSize({ inFrameWidth, inFrameHeight }), UComponent(true)
+			frameSize({ inFrameWidth, inFrameHeight })
 		{
 			currentSprite = std::make_shared<sf::Sprite>(inTexture, sf::IntRect({ 0, 0 }, frameSize));
 			currentSprite->scale(inScale);
 
 			currentGameFrame = 0;
 			currentAnimationFrame = 0;
-			currentSprite->setPosition({ 0, 90 }); //ToDo 
+			//currentSprite->setPosition({ 0, 90 }); //ToDo 
 		}
 
 		void Update();

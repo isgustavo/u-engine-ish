@@ -5,7 +5,7 @@
 int main(int argc, char* argv[])
 {
 	auto engine = std::make_unique<uei::UEngine>(900, 900, "U-Metal Gear Solid-ish", 30,
-		uei::UFloat2D(90, 90), "Assets/fonts/OpenDyslexic-Regular.otf", "Assets/Assets.txt");
+		sf::Vector2f(90.f, 90.f), "Assets/fonts/OpenDyslexic-Regular.otf", "Assets/Assets.txt");
 	
 	engine->AddScene<TestScene>();
 	engine->Start();

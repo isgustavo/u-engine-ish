@@ -33,12 +33,11 @@ namespace uei
 			static_assert(std::is_base_of_v<uei::UComponent, T>,
 				"T must derive from UComponent");
 
-			auto it = components.find(typeid(T));
-			return it != components.end()
-				? static_cast<T*>(it->second.get())
+			auto component = components.find(typeid(T));
+			return component != components.end()
+				? static_cast<T*>(component->second.get())
 				: nullptr;
 		}
-
 		template<typename T>
 		bool HasComponent() const
 		{
@@ -46,6 +45,18 @@ namespace uei
 				"T must derive from UComponent");
 
 			return components.find(typeid(T)) != components.end();
+		}
+		template<typename T>
+		void RemoveComponent()
+		{
+			static_assert(std::is_base_of_v<uei::UComponent, T>,
+				"T must derive from UComponent");
+
+			auto component = components.find(typeid(T));
+			if (component != components.end())
+			{
+				components.erase(component);
+			}
 		}
 
 	private:
