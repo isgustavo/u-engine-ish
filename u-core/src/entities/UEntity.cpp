@@ -3,12 +3,28 @@
 
 namespace uei
 {
+	UEntity::~UEntity()
+	{
+		for (const auto& [key, value] : components)
+		{
+			delete value;
+		}
+		components.clear();
+	}
+	std::string& UEntity::Name()
+	{
+		return name;
+	}
+	void UEntity::Name(std::string inName)
+	{
+		name = inName;
+	}
 	bool UEntity::IsActive() const
 	{
 		return bIsActive;
 	}
-	const std::string& UEntity::GetTag() const
+	std::unordered_map<std::type_index, uei::UComponent*>& UEntity::Components()
 	{
-		return tag;
+		return components;
 	}
 }

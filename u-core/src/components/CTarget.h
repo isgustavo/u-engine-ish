@@ -11,8 +11,8 @@ namespace uei
 	{
 	public:
 
-		CTarget() : UComponent()
-		{
-		}
+		CTarget();
+
+		virtual void Editor_Show(UEngine& inEngine, bool bIsNew) override;
 	};
 }

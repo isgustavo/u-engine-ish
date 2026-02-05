@@ -146,11 +146,13 @@
     <ClCompile Include="src\components\CTarget.cpp" />
     <ClCompile Include="src\components\UComponent.cpp" />
     <ClCompile Include="src\components\CTransform.cpp" />
+    <ClCompile Include="src\editor\Editor_ComponentRegistry.cpp" />
     <ClCompile Include="src\entities\UEntity.cpp" />
     <ClCompile Include="src\math\UFloat2D.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\systems\SPathfinderSystem.cpp" />
     <ClCompile Include="src\UAsset.cpp" />
+    <ClCompile Include="src\UEditorScene.cpp" />
     <ClCompile Include="src\UEngine.cpp" />
     <ClCompile Include="src\UScene.cpp" />
   </ItemGroup>
@@ -279,11 +281,13 @@
     <ClInclude Include="src\components\CTarget.h" />
     <ClInclude Include="src\components\UComponent.h" />
     <ClInclude Include="src\components\CTransform.h" />
+    <ClInclude Include="src\editor\Editor_ComponentRegistry.h" />
     <ClInclude Include="src\entities\UEntity.h" />
     <ClInclude Include="src\math\UFloat2D.h" />
     <ClInclude Include="src\systems\SPathfinderSystem.h" />
     <ClInclude Include="src\systems\USystem.h" />
     <ClInclude Include="src\UAsset.h" />
+    <ClInclude Include="src\UEditorScene.h" />
     <ClInclude Include="src\UEngine.h" />
     <ClInclude Include="src\UEntityManager.h" />
     <ClInclude Include="src\UScene.h" />

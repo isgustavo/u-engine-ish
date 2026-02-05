@@ -45,11 +45,11 @@ namespace uei
 	}
 	void SPathfinderSystem::Update(std::vector<std::unique_ptr<uei::UEntity>>& entities)
 	{
-		for (auto& e : entities)
+		/*for (auto& e : entities)
 		{
-			auto c_agent = e.get()->GetComponent<uei::CAgent>();
-			auto c_transform = e.get()->GetComponent<uei::CTransform>();
-			auto c_pathRequest = e.get()->GetComponent<uei::CPathRequest>();
+			auto* c_agent = e->GetComponent<uei::CAgent>();
+			auto* c_transform = e->GetComponent<uei::CTransform>();
+			auto* c_pathRequest = e->GetComponent<uei::CPathRequest>();
 
 			if (c_agent == nullptr || c_pathRequest == nullptr || c_transform == nullptr) continue;
 
@@ -64,7 +64,7 @@ namespace uei
 						c_agent->GridSize())
 			);
 			e->RemoveComponent<uei::CPathRequest>();
-		}
+		}*/
 	}
 
 	const std::vector<sf::Vector2i> SPathfinderSystem::FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate, const sf::Vector2i& inSourceSize)
