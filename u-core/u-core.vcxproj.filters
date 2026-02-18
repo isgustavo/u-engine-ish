@@ -69,10 +69,19 @@
     <ClCompile Include="src\components\CPath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\UEditorScene.cpp">
+    <ClCompile Include="src\editor\Editor_ComponentRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\editor\Editor_ComponentRegistry.cpp">
+    <ClCompile Include="src\systems\SDrawSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\systems\USystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\UEditorScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\UEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -473,10 +482,19 @@
     <ClInclude Include="src\components\CNavGridModifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\editor\Editor_ComponentRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\systems\SDrawSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\editor\UEditorScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\UEditorScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\editor\Editor_ComponentRegistry.h">
+    <ClInclude Include="src\editor\UEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

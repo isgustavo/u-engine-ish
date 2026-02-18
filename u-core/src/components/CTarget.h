@@ -13,6 +13,6 @@ namespace uei
 
 		CTarget();
 
-		virtual void Editor_Show(UEngine& inEngine, bool bIsNew) override;
+		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
 	};
 }

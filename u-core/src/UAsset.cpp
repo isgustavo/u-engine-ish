@@ -5,30 +5,25 @@
 #include <cassert>
 #include <map>
 #include <SFML/Graphics.hpp>
+#include <UEngine.h>
 
 namespace uei
 {
 	UAsset::UAsset()
 	{
-	}
-
-	void uei::UAsset::LoadFromFile(const std::string& inPath) // ToDo remove inPath param
-	{
-		const std::string TEXTURE("Texture");
-		const std::string ANIMATION("Animation");
-		const std::string FONT("Font");
-		const std::string SPRITE("Sprite");
-		const std::string ASSETS_PATH("Assets/");
+		//const std::string TEXTURE("Texture");
+		//const std::string ANIMATION("Animation");
+		//const std::string FONT("Font");
+		//const std::string SPRITE("Sprite");
+		//const std::string ASSETS_PATH("Assets/");
 
 		textures.clear();
+		AddTextures();
 		sprites.clear();
-		spritesNames.clear();
+		spriteNames.clear();
 
 		std::ifstream file("Assets/Assets.txt");
 		std::string str;
-		//std::string name, path;
-		//int x, y;
-		//int width, height;
 
 		while (file.good())
 		{
@@ -38,7 +33,7 @@ namespace uei
 				std::string name, texturePath;
 				file >> name >> texturePath;
 				std::cout << name << texturePath << std::endl;
-				AddTexture(name, ASSETS_PATH + texturePath);
+				//AddTexture(name, ASSETS_PATH + texturePath);
 			} 
 			else if (str == SPRITE)
 			{
@@ -50,42 +45,51 @@ namespace uei
 			}
 			else if (str == ANIMATION)
 			{
-				std::string texture;
-				//size_t frames, speed;
-				//file >> name >> texture >> frames >> speed;
-				//AddAnimation(name, texture, frames, speed);
+				std::string name, textureName;
+				int x, y, width, height, frames, speed;
+				file >> name >> textureName >> x >> y >> width >> height >> frames >> speed;
+				AddAnimation(name, textureName, x, y, width, height, frames, speed);
 			}
-			else if (str == FONT)
-			{
-				//file >> name >> path;
-				//AddFont(name, path);
-			}
+			//else if (str == FONT)
+			//{
+			//	//file >> name >> path;
+			//	//AddFont(name, path);
+			//}
+			str = "";
 		}
-
 	}
-	void UAsset::AddTexture(const std::string& name, const std::string& path)
+	void UAsset::AddTextures()
 	{
-		sf::Texture texture = sf::Texture();
-		if (!texture.loadFromFile(path))
+		for (const auto& t : std::filesystem::directory_iterator("Assets/Textures"))
 		{
-			std::cerr << "Could not load texture file:" << path << std::endl;
-		}
-		else 
-		{
-			textures.emplace(name, texture);
+			if (t.is_regular_file() && t.path().extension() == ".png")
+			{
+				sf::Texture texture = sf::Texture();
+				if (!texture.loadFromFile(t.path()))
+				{
+					std::cerr << "Could not load texture file:" << t.path() << std::endl;
+				}
+				else
+				{
+					std::cout << "ADD TEXTURE" << t.path().filename().string() << std::endl;
+					textures.emplace(t.path().filename().string(), texture);
+					AllTextures().push_back(t.path().filename().string());
+				}
+			}
 		}
 	}
 	void UAsset::AddSprite(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height)
 	{
 		auto& texture = GetTexture(textureName);
-		spritesNames.push_back(name);
-		//sprites.emplace(name, sf::Sprite(texture, sf::IntRect({ x, y }, { width, height })));
+		spriteNames.push_back(name);
 		sprites.emplace(name, SpriteData{ name, textureName, x, y, width, height });
 	}
-	/*void UAsset::AddAnimation()
+	void UAsset::AddAnimation(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height, const int frames, const int speed)
 	{
-		animations[name] = Animation(name, textrue, frames, speed)
-	}*/
+		auto& texture = GetTexture(textureName);
+		animationNames.push_back(name);
+		animations.emplace(name, AnimationData{ name, textureName, x, y, width, height, frames, speed });
+	}
 	void UAsset::AddFont(const std::string& name, const std::string& path)
 	{
 		fonts[name] = sf::Font();
@@ -98,17 +102,20 @@ namespace uei
 	const sf::Texture& UAsset::GetTexture(const std::string& textureName) const
 	{
 		auto it = textures.find(textureName);
-		assert(it != textures.end());
 		return it->second;
 	}
 	uei::SpriteData& UAsset::Sprite(const std::string& spriteName)
 	{
 		auto it = sprites.find(spriteName);
-		assert(it != sprites.end());
 		return it->second;
 	}
 	const std::vector<std::string>& UAsset::SpritesNames() const
 	{
-		return spritesNames;
+		return spriteNames;
+	}
+	uei::AnimationData& UAsset::Animation(const std::string& animationName)
+	{
+		auto it = animations.find(animationName);
+		return it->second;
 	}
 }

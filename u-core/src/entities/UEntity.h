@@ -21,6 +21,7 @@ namespace uei
 		std::string& Name();
 		void Name(std::string inName);
 		bool IsActive() const;
+		void SetActive(bool value);
 		std::unordered_map<std::type_index, uei::UComponent*>& Components();
 
 		template<typename T, typename... Args>

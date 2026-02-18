@@ -38,7 +38,7 @@ namespace uei
     {
         return bUpdate;
     }
-    void CTransform::Editor_Show(UEngine& inEngine, bool bIsNew)
+    void CTransform::ShowEditor(UEngine& inEngine, bool bIsNew)
     {
         ImGui::BeginChild(
             "Transform",
@@ -59,13 +59,13 @@ namespace uei
         ImGui::EndChild();
         ImGui::Spacing();
     }
-    void CTransform::Editor_Load(std::istream& in)
+    void CTransform::Load(UEngine& engine, std::istream& in)
     {
         float x, y;
         in >> x >> y;
         SetPosition(sf::Vector2f(x, y));
     }
-    std::string CTransform::Editor_Save() const
+    std::string CTransform::Save() const
     {
         std::ostringstream ss;
         ss << position.x << " " << position.y;

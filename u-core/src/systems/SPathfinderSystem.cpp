@@ -43,7 +43,7 @@ namespace uei
 			gridCoordinateMoves.push_back(sf::Vector2i(1, -1));
 		}
 	}
-	void SPathfinderSystem::Update(std::vector<std::unique_ptr<uei::UEntity>>& entities)
+	void SPathfinderSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
 	{
 		/*for (auto& e : entities)
 		{

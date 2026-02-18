@@ -20,10 +20,10 @@ namespace uei
 		{
 			return new CTransform(sf::Vector2f(this->position.x, this->position.y));
 		}
-		inline virtual std::string Editor_ComponentName() const override { return "CTransform"; }
-		virtual void Editor_Show(UEngine& inEngine, bool bIsNew) override;
-		virtual void Editor_Load(std::istream& in) override;
-		virtual std::string Editor_Save() const override;
+		inline virtual std::string ComponentName() const override { return "CTransform"; }
+		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
+		virtual void Load(UEngine& engine, std::istream& in) override;
+		virtual std::string Save() const override;
 
 		//void Update(const float deltaTime);
 

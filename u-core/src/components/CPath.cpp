@@ -7,7 +7,7 @@ namespace uei
 		return path;
 	}
 
-    void CPath::Editor_Show(UEngine& inEngine, bool bIsNew)
+    void CPath::ShowEditor(UEngine& inEngine, bool bIsNew)
     {
 
     }

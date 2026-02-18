@@ -2,19 +2,18 @@
 
 #include "entities/UEntity.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
+#include <UEngine.h>
 
 namespace uei 
 {
     class USystem
     {
     public:
-        USystem()
-        {
+        USystem();
+        ~USystem();
 
-        }
-
-        virtual void Update(std::vector<std::unique_ptr<uei::UEntity>>& entities) = 0;
+        virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) = 0;
     };
 }

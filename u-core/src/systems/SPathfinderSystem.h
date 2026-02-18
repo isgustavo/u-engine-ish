@@ -27,7 +27,7 @@ namespace uei
     public:
         SPathfinderSystem(Heuristic inHeuristic, std::vector<int>& inNavGrid, int inNavGridColumnSize, int inNavGridSqrSize);
 
-        virtual void Update(std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
+        virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
 
     private:
         Heuristic heuristic;

@@ -13,32 +13,37 @@ namespace uei
 	{
 	public:
 		CSprite();
-		CSprite(const sf::Texture& texture, const int x, const int y, const int width, const int height, const sf::Vector2f scale);
-		CSprite(std::string inSpriteName);
-
+		//CSprite(const sf::Texture& texture, const int x, const int y, const int width, const int height, const sf::Vector2f scale);
+		CSprite(const sf::Texture& texture, uei::SpriteData inData, bool flipX);
+		//CSprite(std::string inSpriteName);
 		~CSprite();
 
 		sf::Sprite* Sprite() { return sprite; }
-		void Sprite(sf::Sprite* value) { sprite = value; }
-		std::string SpriteName() { return spriteName; }
+		void SetScale(int gridSize);
+		bool FlipX() { return bFlipX; }
+		//void Sprite(sf::Sprite* value) { sprite = value; }
+		//std::string SpriteName() { return spriteName; }
 
 		UComponent* Clone() const override
 		{
-			return new CSprite(this->spriteName);
+			CSprite* spriteCloned = new CSprite(sprite->getTexture(), data, bFlipX);
+			return spriteCloned;
 		}
 
-		inline virtual std::string Editor_ComponentName() const override { return "CSprite"; }
-		virtual void Editor_Show(UEngine& inEngine, bool bIsNew) override;
-		virtual void Editor_Load(std::istream& in) override;
-		virtual std::string Editor_Save() const override;
+		SpriteData& Data() { return data; }
+
+		inline virtual std::string ComponentName() const override { return "CSprite"; }
+
+		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
+		virtual void Load(UEngine& engine, std::istream& in) override;
+		virtual std::string Save() const override;
 
 	private:
 		//std::shared_ptr<sf::Sprite> sprite;
-		std::string spriteName;
+		//std::string spriteName;
+		bool bFlipX;
+		SpriteData data;
 		sf::Sprite* sprite;
-
-		int editor_selectedIndex = 0;
-		uei::SpriteData editor_data;
-		//std::string editor_selectedSpriteName;
+		//std::string selectedSpriteName;
 	};
 }

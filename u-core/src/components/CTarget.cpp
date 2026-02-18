@@ -9,7 +9,7 @@ namespace uei
 	{
 	}
 
-	void CTarget::Editor_Show(UEngine& inEngine, bool bIsNew)
+	void CTarget::ShowEditor(UEngine& inEngine, bool bIsNew)
 	{
 	}
 }

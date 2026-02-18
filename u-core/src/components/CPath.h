@@ -23,10 +23,10 @@ namespace uei
 		{
 			return new CPath();
 		}
-		inline virtual std::string Editor_ComponentName() const override { return "CPath"; }
-		virtual void Editor_Show(UEngine& inEngine, bool bIsNew) override;
-		virtual void Editor_Load(std::istream& in) override;
-		virtual std::string Editor_Save() const override;
+		inline virtual std::string ComponentName() const override { return "CPath"; }
+		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
+		virtual void Load(UEngine& engine, std::istream& in) override;
+		virtual std::string Save() const override;
 
 	private:
 		const std::vector<sf::Vector2i> path;

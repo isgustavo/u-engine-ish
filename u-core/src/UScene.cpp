@@ -7,29 +7,55 @@
 #include <components/CTransform.h>
 #include <components/CObstacle.h>
 #include <components/CNavGridModifier.h>
-#include "editor/Editor_ComponentRegistry.h"
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <UEngine.cpp>
 
 namespace uei
 {
 	UScene::UScene(UEngine& inEngine) :
 		engine(inEngine),
-		navGrid(), entities(), entitiesMap(), toAdd(),
-		bIsPause(false) 
+		navGrid(), entities(), entitiesMap(), prefabs(), toAdd(), bIsPause(false)
 	{ 
+		view = sf::View();
+		view.setSize(engine.ScreenSize());
+		view.setCenter({ engine.ScreenSize().x * 0.5f, engine.ScreenSize().y * 0.5f });
+	}
+
+	UScene::~UScene() 
+	{
+		Clear();
+	}
+
+	void UScene::Clear()
+	{
+		prefabs.clear();
+		entities.clear();
+		systems.clear();
+		for (auto& [key, value] : entitiesMap)
+		{
+			value.clear();
+		}         
+		entitiesMap.clear();
 	}
 
 	void UScene::Start(std::string levelName)
 	{
+		if (!levelName.empty())
+		{
+			Load(levelName);
+		}
 
-		//const std::string LEVEL("Level");
-		//const std::string PREFAB("Prefab");
-		//const std::string COMPONENT("Component");
-		const std::string LEVEL_DESIGN("levelDesign");
-
+		OnStart();
+	}
+	void UScene::Restart(std::string levelName)
+	{
+		Clear();
+		Start(levelName);
+	}
+	void UScene::Load(std::string levelName)
+	{
 		std::string levelPath = "Assets/" + levelName + ".txt";
 
 		if (!std::filesystem::exists(levelPath))
@@ -51,10 +77,13 @@ namespace uei
 		while (file.good())
 		{
 			file >> str;
+			
+			if (str.empty()) break;
+
 			if (str == LEVEL)
 			{
-				file >> gridColumns >> gridRows >> gridSize;
-				navGrid = std::vector(gridColumns * gridRows, -1);
+				file >> gridColumn >> gridRow >> gridSize;
+				navGrid = std::vector(gridColumn * gridRow, -1);
 			}
 			else if (str == PREFAB)
 			{
@@ -73,33 +102,33 @@ namespace uei
 				std::string componentName;
 				file >> componentName;
 				if (componentName.empty()) continue;
-				auto* newComponent = Editor_ComponentRegistry::Create(componentName);
-				newComponent->Editor_Load(file);
+				auto* newComponent = UEditor::Create(componentName);
+				newComponent->Load(engine, file);
 				newPrefab->AddComponent(newComponent);
 			}
-			else if (str == LEVEL_DESIGN)
+			else if (str == ENTITY)
 			{
-				//std::string prefabName;
-				//float x, y;
-				//file >> prefabName >> x >> y;
+				if (newPrefab != nullptr)
+				{
+					prefabs.emplace(newPrefab->name, newPrefab->Clone());
+					newPrefab = nullptr;
+				}
+				std::string entityName;
+				float px, py;
 
-				//auto it = prefabs.find(prefabName);
-				//assert(it != prefabs.end());
-				//std::unique_ptr<UEntity> newEntity = it->second->Clone();
-				//CTransform* transform = newEntity->GetComponent<CTransform>();
-				//transform->SetPosition(sf::Vector2f(x, y));
+				file >> entityName >> px >> py;
+				AddEntity(entityName, sf::Vector2f(px, py));
 			}
-		}
 
-		if (newPrefab != nullptr)
-		{
-			prefabs.emplace(newPrefab->name, newPrefab->Clone());
+			str = "";
 		}
-		
+		//if (newPrefab != nullptr)
+		//{
+		//	prefabs.emplace(newPrefab->name, newPrefab->Clone());
+		//}
+
 		delete newPrefab;
 		newPrefab = nullptr;
-
-		OnStart();
 	}
 	void UScene::Update()
 	{
@@ -109,17 +138,27 @@ namespace uei
 			UpdateNavGrid();
 		OnUpdate();
 	}
-	UEntity& UScene::AddEntity(std::string& inTag)
+
+	void UScene::Draw()
 	{
-		toAdd.push_back(std::unique_ptr<UEntity>(new UEntity(entities.size(), inTag)));
-		return *toAdd.back();
+		//DrawGrid();
+		OnDraw();
 	}
+
+	UEntity* UScene::AddEntity(std::string& name)
+	{
+		int index = entities.size();
+		std::string entityName = name;// +"_" + std::to_string(index);
+		toAdd.push_back(new UEntity(index, entityName));
+		return toAdd.back();
+	}
+
 	void UScene::AddNewEntities()
 	{
-		for (auto& e : toAdd)
+		for (auto* e : toAdd)
 		{
 			auto tag = e->Name();
-			entities.push_back(std::move(e));
+			entities.push_back(std::unique_ptr<UEntity>(e));
 			entitiesMap[tag].push_back(entities.back().get());
 		}
 		toAdd.clear();
@@ -147,6 +186,7 @@ namespace uei
 			);
 		}
 	}
+
 	void UScene::UpdateNavGrid()
 	{
 		for (int i = 0; i < navGrid.size(); i++)
@@ -168,7 +208,7 @@ namespace uei
 			{
 				for (int j = eRows; j < eRows + c_navGridModifier->Rows(); j++)
 				{
-					navGrid[i * gridColumns + j] += c_navGridModifier->Weight();
+					navGrid[i * gridColumn + j] += c_navGridModifier->Weight();
 				}
 			}
 		}
@@ -179,22 +219,16 @@ namespace uei
 		}
 	}
 
-	void UScene::Draw()
-	{
-		DrawGrid();
-		OnDraw();
-	}
-
 	void UScene::DrawGrid()
 	{
-		for (int x = 0; x < gridColumns; x++)
+		for (int x = 0; x < gridColumn; x++)
 		{
-			DrawLine(sf::Vector2f(x * gridSize, 0), sf::Vector2f(x * gridSize, gridSize * gridRows));
+			DrawLine(sf::Vector2f(x * gridSize, 0), sf::Vector2f(x * gridSize, gridSize * gridRow));
 		}
 
-		for (int y = 0; y < gridRows; y++)
+		for (int y = 0; y < gridRow; y++)
 		{
-			DrawLine(sf::Vector2f(0, y * gridSize), sf::Vector2f(gridSize * gridColumns, y * gridSize));
+			DrawLine(sf::Vector2f(0, y * gridSize), sf::Vector2f(gridSize * gridColumn, y * gridSize));
 		}
 	}
 
@@ -204,4 +238,21 @@ namespace uei
 		engine.RenderWindow().draw(line, 2, sf::PrimitiveType::Lines); // ToDo change to viewport
 	}
 
+	UEntity* UScene::AddEntity(std::string entityName, sf::Vector2f position)
+	{
+		auto it = prefabs.find(entityName);
+		UEntity* prefab = it->second.get();
+		
+		UEntity* newEntity = AddEntity(entityName);
+		newEntity->AddComponent<CTransform>(position);
+
+		if (prefab->HasComponent<CSprite>())
+		{
+			CSprite* sprite = prefab->GetComponent<CSprite>();
+			CSprite* spriteCloned = (CSprite*)sprite->Clone();
+			spriteCloned->SetScale(gridSize);
+			newEntity->AddComponent(spriteCloned);
+		}
+		return newEntity;
+	}
 }
