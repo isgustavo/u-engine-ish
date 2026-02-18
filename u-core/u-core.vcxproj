@@ -146,7 +146,6 @@
     <ClCompile Include="src\components\CTarget.cpp" />
     <ClCompile Include="src\components\UComponent.cpp" />
     <ClCompile Include="src\components\CTransform.cpp" />
-    <ClCompile Include="src\editor\Editor_ComponentRegistry.cpp" />
     <ClCompile Include="src\editor\UEditor.cpp" />
     <ClCompile Include="src\editor\UEditorScene.cpp" />
     <ClCompile Include="src\entities\UEntity.cpp" />
@@ -284,7 +283,6 @@
     <ClInclude Include="src\components\CTarget.h" />
     <ClInclude Include="src\components\UComponent.h" />
     <ClInclude Include="src\components\CTransform.h" />
-    <ClInclude Include="src\editor\Editor_ComponentRegistry.h" />
     <ClInclude Include="src\editor\UEditor.h" />
     <ClInclude Include="src\editor\UEditorScene.h" />
     <ClInclude Include="src\entities\UEntity.h" />
