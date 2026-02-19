@@ -86,7 +86,9 @@ namespace uei
 	private:
 		UEntity(const size_t inID, std::string& inName) : iD(inID), name(inName), bIsActive(true) {}
 
-		const size_t iD;
+		const void SetID(const size_t iniD) { iD = iniD; }
+
+		size_t iD;
 		std::string name;
 		bool bIsActive;
 		std::unordered_map<std::type_index, uei::UComponent*> components;

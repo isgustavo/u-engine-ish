@@ -17,7 +17,7 @@ namespace uei
 	{
 		textures.clear();
 
-		sprites.clear();
+		spriteAssets.clear();
 		spriteNames.clear();
 
 		animations.clear();
@@ -97,7 +97,7 @@ namespace uei
 			std::string content;
 			content.clear();
 
-			for (const auto& [key, value] : sprites)
+			for (const auto& [key, value] : spriteAssets)
 			{
 				content += SPRITE + " " + key + " " + value.textureName + " " +
 					std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + "\n";
@@ -162,16 +162,17 @@ namespace uei
 	{
 		auto& texture = GetTexture(textureName);
 		spriteNames.push_back(name);
-		sprites.emplace(name, SpriteData{ name, textureName, x, y, width, height });
+		spriteAssets.emplace(name, SpriteAsset{ name, textureName, x, y, width, height });
 	}
 	void UAsset::AddAnimation(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height, const int frames, const int speed)
 	{
 		auto& texture = GetTexture(textureName);
 		animationNames.push_back(name);
-		animations.emplace(name, AnimationData{ name, textureName, x, y, width, height, frames, speed });
+		animations.emplace(name, AnimationAsset{ name, textureName, x, y, width, height, frames, speed });
 	}
 	void UAsset::AddPrefab(const std::string& name, uei::UEntity* prefab)
 	{
+		prefab->Name(name);
 		prefabs.emplace(prefab->name, prefab);
 	}
 	void UAsset::AddFont(const std::string& name, const std::string& path)
@@ -188,18 +189,23 @@ namespace uei
 		auto it = textures.find(textureName);
 		return it->second;
 	}
-	const uei::SpriteData& UAsset::Sprite(const std::string& spriteName) const
+	const uei::SpriteAsset& UAsset::GetSpriteAsset(const std::string& spriteName) const
 	{
-		auto it = sprites.find(spriteName);
+		auto it = spriteAssets.find(spriteName);
 		return it->second;
 	}
 	const std::vector<std::string>& UAsset::SpritesNames() const
 	{
 		return spriteNames;
 	}
-	const uei::AnimationData& UAsset::Animation(const std::string& animationName) const
+	const uei::AnimationAsset& UAsset::Animation(const std::string& animationName) const
 	{
 		auto it = animations.find(animationName);
 		return it->second;
+	}
+	const uei::UEntity& UAsset::GetPrefab(const std::string& prefabName) const
+	{
+		auto it = prefabs.find(prefabName);
+		return *it->second;
 	}
 }

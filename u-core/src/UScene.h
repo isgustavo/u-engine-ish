@@ -24,8 +24,6 @@ namespace uei
 		UScene(UEngine& inEngine);
 		~UScene();
 
-		UEntity* AddEntity(std::string& name);
-		
 		template<typename T, typename... Args>
 		void AddSystem(Args&&... args)
 		{
@@ -35,18 +33,13 @@ namespace uei
 			systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
 		}
 		
-		//uei::UEngine& Engine();
 		std::vector<std::unique_ptr<uei::UEntity>>& Entities() { return entities; }
-		//std::unordered_map<std::string, std::unique_ptr<uei::UEntity>>& Prefabs() { return prefabs; }
-		//std::vector<std::unique_ptr<uei::USystem>>& Entities() { return entities; }
-		//const std::vector<std::shared_ptr<Entity>>& GetEntitiesByTag(const std::string& inTag);
 
 		virtual void OnStart() = 0;
 		virtual void OnUpdate() = 0;
 		virtual void OnDraw() = 0;
 		virtual void OnMouseLeft() = 0;
 		virtual void OnMouseRight() = 0;
-		//virtual void Show() = 0;
 
 		sf::View& View() { return view; }
 		int GridColumn() { return gridColumn; }
@@ -59,12 +52,12 @@ namespace uei
 		UEngine& engine;
 		sf::View view;
 
-		//std::unordered_map<std::string, std::unique_ptr<uei::UEntity>> prefabs;
 		std::vector<std::unique_ptr<uei::UEntity>> entities;
 		std::vector<std::unique_ptr<uei::USystem>> systems;
 		std::vector<int> navGrid;
 
-		UEntity* AddEntity(std::string entityName, sf::Vector2f position);
+		void AddEntity(UEntity* entity, sf::Vector2f position);
+		void AddEntity(UEntity* entity);
 
 		int gridColumn;
 		int gridRow;

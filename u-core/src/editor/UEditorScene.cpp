@@ -66,9 +66,12 @@ namespace uei
         {
             CTransform* transform = prefab->GetComponent<CTransform>();
             CSprite* sprite = prefab->GetComponent<CSprite>();
+            
             sf::Vector2i localPosition = sf::Mouse::getPosition(engine.RenderWindow());
-            int x = ((localPosition.x / gridSize) * gridSize) - (sprite->FlipX() ? -gridSize : 0);
-            transform->SetPosition(sf::Vector2f(x, (localPosition.y / gridSize) * gridSize));
+            int x = ((localPosition.x / gridSize) * gridSize) - (sprite->FlipX() ? gridSize : 0);
+            int y = ((localPosition.y / gridSize) * gridSize) + (sprite->FlipY() ? gridSize : 0);
+            
+            transform->SetPosition(sf::Vector2f(x, y));
         }
     }
 
@@ -83,17 +86,9 @@ namespace uei
         {
             CTransform* transform = prefab->GetComponent<CTransform>();
             CSprite* sprite = prefab->GetComponent<CSprite>();
-            
-            //uei::UAsset* assets = engine.Assets();
-            //if (sprite->Sprite() == nullptr)
-            //{
-            //    auto& data = assets->Sprite(sprite->SpriteName());
-            //    sprite->Sprite(new sf::Sprite(assets->GetTexture(data.textureName),
-            //        sf::IntRect({ data.x, data.y }, { data.width, data.height })));
-            //}
-
             sf::Sprite* sp = sprite->Sprite();
-            sp->setScale(sf::Vector2f((sprite->FlipX() ? -1 : 1) * (gridSize / sp->getTextureRect().size.x), gridSize / sp->getTextureRect().size.y));
+            //sp->setScale(sf::Vector2f((sprite->FlipX() ? -1 : 1) * (gridSize / sp->getTextureRect().size.x), 
+            //    (sprite->FlipY() ? -1 : 1) * gridSize / sp->getTextureRect().size.y));
             sp->setPosition(transform->Position());
 
             engine.RenderWindow().draw(*sp);
@@ -385,11 +380,11 @@ namespace uei
 
         ImGui::Columns(columns, nullptr, false);
         int i = 0;
-        for (auto& [key, value] : engine.Assets()->Sprites())
+        for (auto& [key, value] : engine.Assets()->AllSpriteAssets())
         {
             ImGui::PushID(key.c_str());
 
-            auto& data = engine.Assets()->Sprite(value.name);
+            auto& data = engine.Assets()->GetSpriteAsset(value.name);
             sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
                 sf::IntRect({ data.x, data.y }, { data.width, data.height }));
 
@@ -460,51 +455,53 @@ namespace uei
         ImGui::Text("Name:");
         ImGui::SameLine();
         ImGui::InputText("##PrefabName", editorNameBuffer, IM_ARRAYSIZE(editorNameBuffer));
+        
         if (!std::string(editorNameBuffer).empty())
         {
             ImGui::SameLine();
             if (ImGui::Button("Save"))
             {
                 bShowNewPrefab = false;
-                engine.Assets()->AddPrefab(prefab->Name(), prefab->Clone());
+                engine.Assets()->AddPrefab(editorNameBuffer, prefab->Clone());
                 engine.Assets()->Save();
                 ClearEditor();
                 bMainTab = true;
-                return;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Close"))
-            {
-                bShowNewPrefab = false;
-                ClearEditor();
-                bMainTab = true;
-                return;
             }
         }
 
-        int selectedIndex = 0;
-        ImGui::Text("Add Components:");
         ImGui::SameLine();
-        if (ImGui::BeginCombo("##AddComponents", " "))
+        if (ImGui::Button("Close"))
         {
-            for (int i = 0; i < UEditor::AllComponents().size(); ++i) {
-                const bool isSelected = (selectedIndex == i);
+            bShowNewPrefab = false;
+            ClearEditor();
+            bMainTab = true;
+        }
 
-                if (UEditor::AllComponents()[i] == "CTransform") continue;
-                if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
-                {
-                    prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]));
+        if (bShowNewPrefab)
+        {
+            int selectedIndex = 0;
+            ImGui::Text("Add Components:");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##AddComponents", " "))
+            {
+                for (int i = 0; i < UEditor::AllComponents().size(); ++i) {
+                    const bool isSelected = (selectedIndex == i);
+
+                    if (UEditor::AllComponents()[i] == "CTransform") continue;
+                    if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
+                    {
+                        prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]));
+                    }
                 }
+                ImGui::EndCombo();
             }
-            ImGui::EndCombo();
-        }
 
-        int i = 0;
-        for (auto& [type, value] : prefab->Components())
-        {
-            value->ShowEditor(engine, true);
+            int i = 0;
+            for (auto& [type, value] : prefab->Components())
+            {
+                value->ShowEditor(engine, true);
+            }
         }
-
         ImGui::End();
     }
     void UEditorScene::ShowEditPrefabTab()
@@ -515,7 +512,7 @@ namespace uei
         if (ImGui::Button("Save"))
         {
             bShowEditPrefab = false;
-            SaveScene();
+            engine.Assets()->Save();
             //delete prefab;
             prefab = nullptr;
             bMainTab = true;
@@ -577,37 +574,22 @@ namespace uei
             if (value->HasComponent<CSprite>())
             {
                 CSprite* sprite = value->GetComponent<CSprite>();
-                auto& data = sprite->Data();
+                auto& spriteAsset = engine.Assets()->GetSpriteAsset(sprite->SpriteName());
                 
                 ImTextureID id = (ImTextureID)(intptr_t)sprite->Sprite()->getTexture().getNativeHandle();
                 sf::Vector2u size = sprite->Sprite()->getTexture().getSize();
 
-                if (sprite->FlipX())
-                {
-                    ImVec2 uv0(
-                        (float)(data.x + data.width) / size.x,
-                        (float)data.y / size.y
-                    );
+                ImVec2 uv0(
+                    sprite->FlipX() ? (float)(spriteAsset.x + spriteAsset.width) / size.x : (float)spriteAsset.x / size.x,
+                    sprite->FlipY() ? (float)(spriteAsset.y + spriteAsset.height) / size.y : (float)spriteAsset.y / size.y
+                );
 
-                    ImVec2 uv1(
-                        (float)data.x / size.x,
-                        (float)(data.y + data.height) / size.y
-                    );
+                ImVec2 uv1(
+                    sprite->FlipX() ? (float)spriteAsset.x / size.x : (float)(spriteAsset.x + spriteAsset.width) / size.x,
+                    sprite->FlipY() ? (float)spriteAsset.y / size.y : (float)(spriteAsset.y + spriteAsset.height) / size.y
+                );
 
-                    ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-                }
-                else
-                {
-                    ImVec2 uv0(
-                        (float)data.x / size.x,
-                        (float)data.y / size.y);
-
-                    ImVec2 uv1(
-                        (float)(data.x + data.width) / size.x,
-                        (float)(data.y + data.height) / size.y);
-
-                    ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-                }
+                ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
             }
             else
             {
@@ -621,13 +603,20 @@ namespace uei
             {
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
                 {
-                    prefab = value->Clone();
+                    prefab = value;// ->Clone();
                     bShowEditPrefab = true;
                     bMainTab = false;
                 }
                 else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && bSceneLoaded)
                 {
-                    prefab = value->Clone();
+                    prefab = value;// ->Clone();
+                    CSprite* sprite = prefab->GetComponent<CSprite>();
+                    if (sprite != nullptr)
+                    {
+                        sf::Sprite* sp = sprite->Sprite();
+                        sp->setScale(sf::Vector2f((sprite->FlipX() ? -1 : 1) * (gridSize / sp->getTextureRect().size.x),
+                            (sprite->FlipY() ? -1 : 1) * gridSize / sp->getTextureRect().size.y));
+                    }
                     bPrefabSelected = true;
                     bMainTab = false;
                 }
@@ -819,7 +808,7 @@ namespace uei
             int x = ((mousePosition.x / gridSize) * gridSize) - (sprite->FlipX() ? -gridSize : 0);
             sf::Vector2f position = sf::Vector2f(x, (mousePosition.y / gridSize) * gridSize);
 
-            AddEntity(prefab->Name(), position);
+            AddEntity(prefab->Clone(), position);
         }
     }
 
