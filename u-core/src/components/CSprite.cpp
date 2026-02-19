@@ -145,7 +145,7 @@ namespace uei
 		}
 	}
 
-	void CSprite::Load(UEngine& engine, std::istream& in)
+	void CSprite::LoadComponent(UEngine& engine, std::istream& in)
 	{
 		std::string spriteName;
 		std::string flipValue;

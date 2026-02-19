@@ -12,7 +12,7 @@ namespace uei
 		virtual UComponent* Clone() const = 0;
 		virtual std::string ComponentName() const = 0;
 		virtual void ShowEditor(class UEngine& inEngine, bool bIsNew) = 0;
-		virtual void Load(UEngine& engine, std::istream & in) = 0;
+		virtual void LoadComponent(UEngine& engine, std::istream & in) = 0;
 		virtual std::string Save() const = 0;
 	};
 }

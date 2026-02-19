@@ -25,7 +25,7 @@ namespace uei
 		}
 		inline virtual std::string ComponentName() const override { return "CPath"; }
 		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
-		virtual void Load(UEngine& engine, std::istream& in) override;
+		virtual void LoadComponent(UEngine& engine, std::istream& in) override;
 		virtual std::string Save() const override;
 
 	private:

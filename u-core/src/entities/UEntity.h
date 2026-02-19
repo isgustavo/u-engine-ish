@@ -13,6 +13,7 @@ namespace uei
 	{
 		friend class UEngine;
 		friend class UScene;
+		friend class UAsset;
 
 	public:
 		UEntity() : iD(-1), name(" "), bIsActive(true) {}
@@ -40,7 +41,7 @@ namespace uei
 		}
 
 		template<typename T>
-		T* GetComponent()
+		T* GetComponent() const
 		{
 			static_assert(std::is_base_of_v<uei::UComponent, T>,
 				"T must derive from UComponent");

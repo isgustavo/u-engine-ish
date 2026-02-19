@@ -39,13 +39,9 @@ namespace uei
             ImGui::Begin("Editor");
             if (ImGui::BeginTabBar("u-engine-ish"))
             {
-                ShowFileTab();
                 ShowAssetsTab();
-                if (bSceneLoaded)
-                {
-                    ShowPrefabTab();
-                }
-
+                ShowPrefabTab();
+                ShowSceneTab();
                 ImGui::EndTabBar();
             }
             ImGui::End();
@@ -109,9 +105,9 @@ namespace uei
         }
     }
 
-    void UEditorScene::ShowFileTab()
+    void UEditorScene::ShowSceneTab()
     {
-        if (ImGui::BeginTabItem("File"))
+        if (ImGui::BeginTabItem("Scene"))
         {
             if (!bSceneLoaded)
             {
@@ -119,7 +115,7 @@ namespace uei
             }
             else
             {
-                ShowFileOpenTab();
+                ShowSceneOpenTab();
             }
 
             ImGui::EndTabItem();
@@ -131,7 +127,7 @@ namespace uei
         {
             ImGui::Text("Scene Name:");
             ImGui::SameLine();
-            ImGui::InputText("##sceneName", sceneName, IM_ARRAYSIZE(sceneName));
+            ImGui::InputText("##sceneName", editorNameBuffer, IM_ARRAYSIZE(editorNameBuffer));
             if (ImGui::Button("Open/Create"))
                 LoadScene();
         }
@@ -153,9 +149,9 @@ namespace uei
                 CreateScene();
         }
     }
-    void UEditorScene::ShowFileOpenTab()
+    void UEditorScene::ShowSceneOpenTab()
     {
-        ImGui::Text(("Scene Name: " + std::string(sceneName)).c_str());
+        ImGui::Text(("Scene Name: " + std::string(editorNameBuffer)).c_str());
 
         if (ImGui::Button("Save"))
         {
@@ -198,19 +194,31 @@ namespace uei
     }
     void UEditorScene::ShowNewAssetTab()
     {
+        auto& allAsstTypes = engine.Assets()->AllAssetTypes();
+        auto& allTexture = engine.Assets()->AllTextures();
+
         ImGui::Begin("New Asset");
         ImGui::Text("Name:");
         ImGui::SameLine();
-        ImGui::InputText("##AssetName", newName, IM_ARRAYSIZE(newName));
-        if (!std::string(newName).empty())
+        ImGui::InputText("##AssetName", editorNameBuffer, IM_ARRAYSIZE(editorNameBuffer));
+        if (!std::string(editorNameBuffer).empty())
         {
             ImGui::SameLine();
             if (ImGui::Button("Save"))
             {
                 bShowNewAsset = false;
-                SaveAsset();
-                newName[0] = '\0';
-                currentAnimationDeltaTime = 0;
+                if (allAsstTypes[assetTypeSelectedIndex] == SPRITE)
+                {
+                    engine.Assets()->AddSprite(editorNameBuffer, engine.Assets()->AllTextures()[assetTextureSelectedIndex], newSpriteX, newSpriteY,
+                        newSpriteWidth, newSpriteHeight);
+                }
+                else if (allAsstTypes[assetTypeSelectedIndex] == ANIMATION)
+                {
+                    engine.Assets()->AddAnimation(editorNameBuffer, engine.Assets()->AllTextures()[assetTextureSelectedIndex], newSpriteX, newSpriteY,
+                        newSpriteWidth, newSpriteHeight, newAnimationFrame, newAnimationSpeed);
+                }
+                engine.Assets()->Save();
+                ClearEditor();
                 bMainTab = true;
             }
         }
@@ -218,15 +226,13 @@ namespace uei
         if (ImGui::Button("Close"))
         {
             bShowNewAsset = false;
-            newName[0] = '\0';
-            currentAnimationDeltaTime = 0;
+            ClearEditor();
             bMainTab = true;
         }
 
         ImGui::Text("Asset Type:");
         ImGui::SameLine();
-        auto& allAsstTypes = engine.Assets()->AllAssetTypes();
-        auto& allTexture = engine.Assets()->AllTextures();
+        
         if (ImGui::BeginCombo("##AddAssetType", allAsstTypes[assetTypeSelectedIndex].c_str()))
         {
             for (int i = 0; i < allAsstTypes.size(); ++i)
@@ -453,16 +459,16 @@ namespace uei
         ImGui::Begin("New Prefab");
         ImGui::Text("Name:");
         ImGui::SameLine();
-        ImGui::InputText("##PrefabName", newName, IM_ARRAYSIZE(newName));
-        if (!std::string(newName).empty())
+        ImGui::InputText("##PrefabName", editorNameBuffer, IM_ARRAYSIZE(editorNameBuffer));
+        if (!std::string(editorNameBuffer).empty())
         {
             ImGui::SameLine();
             if (ImGui::Button("Save"))
             {
                 bShowNewPrefab = false;
-                prefab->Name(std::string(newName));
-                SavePrefab();
-                newName[0] = '\0';
+                engine.Assets()->AddPrefab(prefab->Name(), prefab->Clone());
+                engine.Assets()->Save();
+                ClearEditor();
                 bMainTab = true;
                 return;
             }
@@ -470,7 +476,7 @@ namespace uei
             if (ImGui::Button("Close"))
             {
                 bShowNewPrefab = false;
-                newName[0] = '\0';
+                ClearEditor();
                 bMainTab = true;
                 return;
             }
@@ -564,16 +570,15 @@ namespace uei
 
         ImGui::Columns(columns, nullptr, false);
         int i = 0;
-        for (auto& [prefabName, value] : prefabs)
+        for (auto& [prefabName, value] : engine.Assets()->Prefabs())
         {
-            //if (Prefab != nullptr && prefabName == Prefab->Name()) continue;
-
             ImGui::PushID(prefabName.c_str());
 
-            if (value.get()->HasComponent<CSprite>())
+            if (value->HasComponent<CSprite>())
             {
-                CSprite* sprite = value.get()->GetComponent<CSprite>();
+                CSprite* sprite = value->GetComponent<CSprite>();
                 auto& data = sprite->Data();
+                
                 ImTextureID id = (ImTextureID)(intptr_t)sprite->Sprite()->getTexture().getNativeHandle();
                 sf::Vector2u size = sprite->Sprite()->getTexture().getSize();
 
@@ -603,11 +608,6 @@ namespace uei
 
                     ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
                 }
-
-                //ImVec2 uv0((float)data.x / size.x, (float)data.y / size.y);
-                //ImVec2 uv1((float)(data.x + data.width) / size.x, (float)(data.y + data.height) / size.y);
-
-                //ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
             }
             else
             {
@@ -621,13 +621,13 @@ namespace uei
             {
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
                 {
-                    prefab = value.get();// ->Clone();
+                    prefab = value->Clone();
                     bShowEditPrefab = true;
                     bMainTab = false;
                 }
-                else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && bSceneLoaded)
                 {
-                    prefab = value.get();// ->Clone();
+                    prefab = value->Clone();
                     bPrefabSelected = true;
                     bMainTab = false;
                 }
@@ -642,11 +642,11 @@ namespace uei
 
     void UEditorScene::CreateScene()
     {
-        std::string levelPath = "Assets/" + std::string(sceneName) + ".txt";
+        std::string levelPath = "Assets/" + std::string(editorNameBuffer) + ".txt";
         std::ofstream file(levelPath);
         if (!file)
         {
-            std::cerr << "Failed to create Assets/" << sceneName << ".txt" << std::endl;
+            std::cerr << "Failed to create Assets/" << editorNameBuffer << ".txt" << std::endl;
             return;
         }
 
@@ -656,13 +656,13 @@ namespace uei
     }
     void UEditorScene::LoadScene()
     {
-        Restart(sceneName);
+        Restart(editorNameBuffer);
         bSceneLoaded = true;
         bNewScene = false;
     }
     void UEditorScene::SaveScene()
     {
-        std::string levelPath = "Assets/" + std::string(sceneName) + ".txt";
+        std::string levelPath = "Assets/" + std::string(editorNameBuffer) + ".txt";
         if (std::filesystem::exists(levelPath))
         {
             std::string content;
@@ -670,7 +670,7 @@ namespace uei
 
             content = LEVEL + " " + std::to_string(gridColumn) + " " + std::to_string(gridRow) + " " + std::to_string(gridSize) + "\n";
 
-            for (const auto& [key, value] : prefabs)
+            /*for (const auto& [key, value] : prefabs)
             {
                 content += PREFAB + " " + value->Name() + "\n";
 
@@ -678,7 +678,7 @@ namespace uei
                 {
                     content += COMPONENT + " " + c_value->ComponentName() + " " + c_value->Save() + "\n";
                 }
-            }
+            }*/
 
             for (auto& e : entities)
             {
@@ -694,14 +694,12 @@ namespace uei
     }
     void UEditorScene::CloseScene()
     {
-        delete prefab;
-        prefab = nullptr;
-        sceneName[0] = '\0';
-        Clear();
+        ClearEditor();
+        ClearScene();
         bSceneLoaded = false;
     }
 
-    void UEditorScene::SaveAsset()
+    /*void UEditorScene::SaveAsset()
     {
         std::string assetsPath = "Assets/Assets.txt";
         if (std::filesystem::exists(assetsPath))
@@ -740,7 +738,7 @@ namespace uei
             out << content;
             out.close();
         }
-    }
+    }*/
 
     //void UEditorScene::SaveUpdatePrefab()
     //{
@@ -750,7 +748,7 @@ namespace uei
     //    prefab = nullptr;
     //    bMainTab = true;
     //}
-    void UEditorScene::SavePrefab()
+    /*void UEditorScene::SavePrefab()
     {
         prefabs.emplace(prefab->Name(), prefab->Clone());
         SaveScene();
@@ -758,13 +756,27 @@ namespace uei
         prefab = nullptr;
         bShowNewPrefab = false;
         bMainTab = true;
-    }
+    }*/
     void UEditorScene::CancelPrefabSelected()
     {
         delete prefab;
         prefab = nullptr;
         bPrefabSelected = false;
         bMainTab = true;
+    }
+
+    void UEditorScene::ClearEditor()
+    {
+        editorNameBuffer[0] = '\0';
+        assetTypeSelectedIndex = 0;
+        assetTextureSelectedIndex = 0;
+        newSpriteX = 0;
+        newSpriteY = 0;
+        newSpriteWidth = 0;
+        newSpriteHeight = 0;
+        newAnimationFrame = 0;
+        newAnimationSpeed = 0;
+        prefab = nullptr;
     }
 
     void UEditorScene::OnMouseRight()

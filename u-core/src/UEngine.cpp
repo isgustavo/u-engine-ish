@@ -82,7 +82,7 @@ namespace uei
 
         for (auto* s : scenes)
         {
-            s->Clear();
+            s->ClearScene();
             delete s;
             s = nullptr;
         }
@@ -96,6 +96,7 @@ namespace uei
     }
     void UEngine::Start()
     {
+        assets->Load(*this);
         if (bShowEditor)
         {
             scenes.clear();

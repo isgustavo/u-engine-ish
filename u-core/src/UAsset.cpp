@@ -1,26 +1,31 @@
 #include "UAsset.h"
+#include "UEngine.h"
 
 #include <iostream>
 #include <fstream>
 #include <cassert>
 #include <map>
 #include <SFML/Graphics.hpp>
-#include <UEngine.h>
 
 namespace uei
 {
 	UAsset::UAsset()
 	{
-		//const std::string TEXTURE("Texture");
-		//const std::string ANIMATION("Animation");
-		//const std::string FONT("Font");
-		//const std::string SPRITE("Sprite");
-		//const std::string ASSETS_PATH("Assets/");
-
+		
+	}
+	void UAsset::Load(UEngine& engine)
+	{
 		textures.clear();
-		AddTextures();
+
 		sprites.clear();
 		spriteNames.clear();
+
+		animations.clear();
+		animationNames.clear();
+
+		LoadTextures();
+
+		uei::UEntity* prefab = nullptr;
 
 		std::ifstream file("Assets/Assets.txt");
 		std::string str;
@@ -32,9 +37,7 @@ namespace uei
 			{
 				std::string name, texturePath;
 				file >> name >> texturePath;
-				std::cout << name << texturePath << std::endl;
-				//AddTexture(name, ASSETS_PATH + texturePath);
-			} 
+			}
 			else if (str == SPRITE)
 			{
 				std::string name, textureName;
@@ -55,10 +58,88 @@ namespace uei
 			//	//file >> name >> path;
 			//	//AddFont(name, path);
 			//}
+			else if (str == PREFAB)
+			{
+				if (prefab != nullptr)
+				{
+					prefabs.emplace(prefab->name, prefab->Clone());
+					prefab = nullptr;
+				}
+				std::string prefabName;
+				file >> prefabName;
+
+				prefab = new UEntity(0, prefabName);
+			}
+			else if (str == COMPONENT)
+			{
+				std::string componentName;
+				file >> componentName;
+				if (componentName.empty()) continue;
+				auto* newComponent = UEditor::Create(componentName);
+				newComponent->LoadComponent(engine, file);
+				prefab->AddComponent(newComponent);
+			}
+
 			str = "";
 		}
+
+		if (prefab != nullptr)
+		{
+			prefabs.emplace(prefab->name, prefab->Clone());
+			prefab = nullptr;
+		}
 	}
-	void UAsset::AddTextures()
+	void UAsset::Save()
+	{
+		std::string filePath = "Assets/Assets.txt";
+		if (std::filesystem::exists(filePath))
+		{
+			std::string content;
+			content.clear();
+
+			for (const auto& [key, value] : sprites)
+			{
+				content += SPRITE + " " + key + " " + value.textureName + " " +
+					std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + "\n";
+			}
+
+			//auto& allAsstTypes = engine.Assets()->AllAssetTypes();
+			//if (allAsstTypes[assetTypeSelectedIndex] == SPRITE)
+			//{
+			//	content += SPRITE + " " + newName + " " + engine.Assets()->AllTextures()[assetTextureSelectedIndex] + " " +
+			//		std::to_string(newSpriteX) + " " + std::to_string(newSpriteY) + " " + std::to_string(newSpriteWidth) + " " + std::to_string(newSpriteHeight) + "\n";
+			//}
+
+			for (const auto& [key, value] : animations)
+			{
+				content += ANIMATION + " " + key + " " + value.textureName + " " +
+					std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + " " +
+					std::to_string(value.frame) + " " + std::to_string(value.speed) + "\n";
+			}
+
+			for (const auto& [key, value] : prefabs)
+			{
+				content += PREFAB + " " + value->Name() + "\n";
+
+				for (const auto& [c_key, c_value] : value->Components())
+				{
+					content += COMPONENT + " " + c_value->ComponentName() + " " + c_value->Save() + "\n";
+				}
+			}
+
+			//if (allAsstTypes[assetTypeSelectedIndex] == ANIMATION)
+			//{
+			//	content += ANIMATION + " " + newName + " " + engine.Assets()->AllTextures()[assetTextureSelectedIndex] + " " +
+			//		std::to_string(newSpriteX) + " " + std::to_string(newSpriteY) + " " + std::to_string(newSpriteWidth) + " " + std::to_string(newSpriteHeight) + " " +
+			//		std::to_string(newAnimationFrame) + " " + std::to_string(newAnimationSpeed) + "\n";
+			//}
+
+			std::ofstream out(filePath);
+			out << content;
+			out.close();
+		}
+	}
+	void UAsset::LoadTextures()
 	{
 		for (const auto& t : std::filesystem::directory_iterator("Assets/Textures"))
 		{
@@ -71,7 +152,6 @@ namespace uei
 				}
 				else
 				{
-					std::cout << "ADD TEXTURE" << t.path().filename().string() << std::endl;
 					textures.emplace(t.path().filename().string(), texture);
 					AllTextures().push_back(t.path().filename().string());
 				}
@@ -90,6 +170,10 @@ namespace uei
 		animationNames.push_back(name);
 		animations.emplace(name, AnimationData{ name, textureName, x, y, width, height, frames, speed });
 	}
+	void UAsset::AddPrefab(const std::string& name, uei::UEntity* prefab)
+	{
+		prefabs.emplace(prefab->name, prefab);
+	}
 	void UAsset::AddFont(const std::string& name, const std::string& path)
 	{
 		fonts[name] = sf::Font();
@@ -104,7 +188,7 @@ namespace uei
 		auto it = textures.find(textureName);
 		return it->second;
 	}
-	uei::SpriteData& UAsset::Sprite(const std::string& spriteName)
+	const uei::SpriteData& UAsset::Sprite(const std::string& spriteName) const
 	{
 		auto it = sprites.find(spriteName);
 		return it->second;
@@ -113,7 +197,7 @@ namespace uei
 	{
 		return spriteNames;
 	}
-	uei::AnimationData& UAsset::Animation(const std::string& animationName)
+	const uei::AnimationData& UAsset::Animation(const std::string& animationName) const
 	{
 		auto it = animations.find(animationName);
 		return it->second;

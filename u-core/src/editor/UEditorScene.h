@@ -16,10 +16,10 @@ namespace uei
 		virtual void OnMouseRight() override;
 
 	private:
-		char sceneName[128] = "";
-		char newName[128] = "";
+		//char sceneName[128] = "";
 		class UEntity* prefab;
 
+		char editorNameBuffer[128] = "";
 		bool bSceneLoaded;
 		bool bNewScene;
 		bool bMainTab;
@@ -41,9 +41,9 @@ namespace uei
 		int currentAnimationFrame = 0;
 		float currentAnimationDeltaTime = .0f;
 
-		void ShowFileTab();
+		void ShowSceneTab();
 		void ShowOpenCreateTab();
-		void ShowFileOpenTab();
+		void ShowSceneOpenTab();
 
 		void ShowAssetsTab();
 		void ShowNewAssetTab();
@@ -59,12 +59,12 @@ namespace uei
 		void SaveScene();
 		void CloseScene();
 
-		void SaveAsset();
-
-		void SaveUpdatePrefab();
-		void SavePrefab();
+		//void SaveAsset();
+		//void SaveUpdatePrefab();
+		//void SavePrefab();
 		void CancelPrefabSelected();
 
+		void ClearEditor();
 		
 	};
 }

@@ -37,7 +37,7 @@ namespace uei
 		
 		//uei::UEngine& Engine();
 		std::vector<std::unique_ptr<uei::UEntity>>& Entities() { return entities; }
-		std::unordered_map<std::string, std::unique_ptr<uei::UEntity>>& Prefabs() { return prefabs; }
+		//std::unordered_map<std::string, std::unique_ptr<uei::UEntity>>& Prefabs() { return prefabs; }
 		//std::vector<std::unique_ptr<uei::USystem>>& Entities() { return entities; }
 		//const std::vector<std::shared_ptr<Entity>>& GetEntitiesByTag(const std::string& inTag);
 
@@ -59,18 +59,19 @@ namespace uei
 		UEngine& engine;
 		sf::View view;
 
-		std::unordered_map<std::string, std::unique_ptr<uei::UEntity>> prefabs;
+		//std::unordered_map<std::string, std::unique_ptr<uei::UEntity>> prefabs;
 		std::vector<std::unique_ptr<uei::UEntity>> entities;
 		std::vector<std::unique_ptr<uei::USystem>> systems;
 		std::vector<int> navGrid;
 
 		UEntity* AddEntity(std::string entityName, sf::Vector2f position);
+
 		int gridColumn;
 		int gridRow;
 		int gridSize;
 
 		void Restart(std::string levelName);
-		void Clear();
+		void ClearScene();
 		void DrawGrid();
 
 	private:	

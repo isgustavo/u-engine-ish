@@ -16,7 +16,7 @@ namespace uei
 {
 	UScene::UScene(UEngine& inEngine) :
 		engine(inEngine),
-		navGrid(), entities(), entitiesMap(), prefabs(), toAdd(), bIsPause(false)
+		navGrid(), entities(), entitiesMap(), toAdd(), bIsPause(false)
 	{ 
 		view = sf::View();
 		view.setSize(engine.ScreenSize());
@@ -25,12 +25,12 @@ namespace uei
 
 	UScene::~UScene() 
 	{
-		Clear();
+		ClearScene();
 	}
 
-	void UScene::Clear()
+	void UScene::ClearScene()
 	{
-		prefabs.clear();
+		//prefabs.clear();
 		entities.clear();
 		systems.clear();
 		for (auto& [key, value] : entitiesMap)
@@ -51,7 +51,7 @@ namespace uei
 	}
 	void UScene::Restart(std::string levelName)
 	{
-		Clear();
+		ClearScene();
 		Start(levelName);
 	}
 	void UScene::Load(std::string levelName)
@@ -85,34 +85,34 @@ namespace uei
 				file >> gridColumn >> gridRow >> gridSize;
 				navGrid = std::vector(gridColumn * gridRow, -1);
 			}
-			else if (str == PREFAB)
-			{
-				if (newPrefab != nullptr)
-				{
-					prefabs.emplace(newPrefab->name, newPrefab->Clone());
-					newPrefab = nullptr;
-				}
-				std::string prefabName;
-				file >> prefabName;
+			//else if (str == PREFAB)
+			//{
+			//	if (newPrefab != nullptr)
+			//	{
+			//		prefabs.emplace(newPrefab->name, newPrefab->Clone());
+			//		newPrefab = nullptr;
+			//	}
+			//	std::string prefabName;
+			//	file >> prefabName;
 
-				newPrefab = new UEntity(0, prefabName);
-			}
-			else if (str == COMPONENT)
-			{
-				std::string componentName;
-				file >> componentName;
-				if (componentName.empty()) continue;
-				auto* newComponent = UEditor::Create(componentName);
-				newComponent->Load(engine, file);
-				newPrefab->AddComponent(newComponent);
-			}
+			//	newPrefab = new UEntity(0, prefabName);
+			//}
+			//else if (str == COMPONENT)
+			//{
+			//	std::string componentName;
+			//	file >> componentName;
+			//	if (componentName.empty()) continue;
+			//	auto* newComponent = UEditor::Create(componentName);
+			//	newComponent->LoadComponent(engine, file);
+			//	newPrefab->AddComponent(newComponent);
+			//}
 			else if (str == ENTITY)
 			{
-				if (newPrefab != nullptr)
-				{
-					prefabs.emplace(newPrefab->name, newPrefab->Clone());
-					newPrefab = nullptr;
-				}
+				//if (newPrefab != nullptr)
+				//{
+				//	prefabs.emplace(newPrefab->name, newPrefab->Clone());
+				//	newPrefab = nullptr;
+				//}
 				std::string entityName;
 				float px, py;
 
@@ -240,8 +240,8 @@ namespace uei
 
 	UEntity* UScene::AddEntity(std::string entityName, sf::Vector2f position)
 	{
-		auto it = prefabs.find(entityName);
-		UEntity* prefab = it->second.get();
+		auto it = engine.Assets()->Prefabs().find(entityName);
+		UEntity* prefab = it->second;
 		
 		UEntity* newEntity = AddEntity(entityName);
 		newEntity->AddComponent<CTransform>(position);

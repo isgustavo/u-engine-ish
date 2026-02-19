@@ -59,7 +59,7 @@ namespace uei
         ImGui::EndChild();
         ImGui::Spacing();
     }
-    void CTransform::Load(UEngine& engine, std::istream& in)
+    void CTransform::LoadComponent(UEngine& engine, std::istream& in)
     {
         float x, y;
         in >> x >> y;
