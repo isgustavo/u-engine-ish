@@ -141,6 +141,7 @@
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\components\CAnimation.cpp" />
+    <ClCompile Include="src\components\CMovementAnimation.cpp" />
     <ClCompile Include="src\components\CPath.cpp" />
     <ClCompile Include="src\components\CSprite.cpp" />
     <ClCompile Include="src\components\CTarget.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="src\components\CAnimation.h" />
     <ClInclude Include="src\components\CCircle.h" />
     <ClInclude Include="src\components\CFindPathTo.h" />
+    <ClInclude Include="src\components\CMovementAnimation.h" />
     <ClInclude Include="src\components\CNavGridModifier.h" />
     <ClInclude Include="src\components\CObstacle.h" />
     <ClInclude Include="src\components\CPath.h" />

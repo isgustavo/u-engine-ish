@@ -7,6 +7,7 @@
 #include "components/CSprite.h"
 #include "components/CTarget.h"
 #include "components/CAnimation.h"
+#include "components/CMovementAnimation.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -167,5 +168,6 @@ namespace uei
 
 //REGISTER_COMPONENT(CTarget);
 //REGISTER_COMPONENT(CAnimation);
+REGISTER_COMPONENT(CMovementAnimation);
 REGISTER_COMPONENT(CSprite);
 REGISTER_COMPONENT(CTransform);
