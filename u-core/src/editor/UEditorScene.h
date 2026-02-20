@@ -47,6 +47,7 @@ namespace uei
 
 		void ShowAssetsTab();
 		void ShowNewAssetTab();
+		void ShowPrefabComponent();
 		void ShowAssetsGallery();
 
 		void ShowPrefabTab();

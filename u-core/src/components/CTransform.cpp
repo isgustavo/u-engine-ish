@@ -7,12 +7,15 @@
 
 namespace uei 
 {
-    CTransform::CTransform() : UComponent() {}
+    CTransform::CTransform() : UComponent() 
+    {
+        bCanRemove = false;
+    }
 
     CTransform::CTransform(const sf::Vector2f& inPosition/*, sf::Vector2f& inInitialVelocity*/) : UComponent(),
         position(inPosition), positionLastUpdate(position), bUpdate(true)/*, velocity(inInitialVelocity)*/
     {
-
+        bCanRemove = false;
     }
 
     //void CTransform::Update(const float deltaTime)
@@ -38,26 +41,40 @@ namespace uei
     {
         return bUpdate;
     }
-    void CTransform::ShowEditor(UEngine& inEngine, bool bIsNew)
+    //void CTransform::ShowEditor(UEngine& inEngine, std::function<void()> onRemove)
+    //{
+    //    ImGui::BeginChild(
+    //        "Transform",
+    //        ImVec2(0, 33),
+    //        true
+    //    );
+    //    ImGui::Text("CTransform");
+    //    //if (!bIsNew)
+    //    //{
+    //    //    float pos[2] = { position.x, position.y };
+    //    //    ImGui::Text("Position");
+    //    //    ImGui::SameLine();
+    //    //    if (ImGui::InputFloat2("##t001", pos))
+    //    //    {
+    //    //        position = { pos[0], pos[1] };
+    //    //    }
+    //    //}
+    //    ImGui::EndChild();
+    //    ImGui::Spacing();
+    //}
+    void CTransform::OnShowEditor(UEngine& engine, std::function<void()> onRemove)
     {
-        ImGui::BeginChild(
-            "Transform",
-            ImVec2(0, bIsNew ? 33 : 100),
-            true
-        );
-        ImGui::Text("CTransform");
-        if (!bIsNew)
-        {
-            float pos[2] = { position.x, position.y };
-            ImGui::Text("Position");
-            ImGui::SameLine();
-            if (ImGui::InputFloat2("##t001", pos))
-            {
-                position = { pos[0], pos[1] };
-            }
-        }
-        ImGui::EndChild();
-        ImGui::Spacing();
+
+    }
+    int CTransform::GetEditorSize(UEngine& engine) const
+    {
+        return 33;
+    }
+    void CTransform::OnComponentAdd(UEntity& entity)
+    {
+    }
+    void CTransform::OnComponentRemove(UEntity& entity)
+    {
     }
     void CTransform::LoadComponent(UEngine& engine, std::istream& in)
     {
@@ -71,5 +88,6 @@ namespace uei
         ss << position.x << " " << position.y;
         return ss.str();
     }
+
 }
 

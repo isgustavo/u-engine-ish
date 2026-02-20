@@ -28,8 +28,6 @@ namespace uei
     {
         bMainTab = true;
         AddSystem<SDrawSystem>();
-
-        std::cout << "OnStart" << std::endl;
     }
 
     void UEditorScene::OnUpdate()
@@ -86,9 +84,8 @@ namespace uei
         {
             CTransform* transform = prefab->GetComponent<CTransform>();
             CSprite* sprite = prefab->GetComponent<CSprite>();
+
             sf::Sprite* sp = sprite->Sprite();
-            //sp->setScale(sf::Vector2f((sprite->FlipX() ? -1 : 1) * (gridSize / sp->getTextureRect().size.x), 
-            //    (sprite->FlipY() ? -1 : 1) * gridSize / sp->getTextureRect().size.y));
             sp->setPosition(transform->Position());
 
             engine.RenderWindow().draw(*sp);
@@ -302,7 +299,7 @@ namespace uei
                 {
                     sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(allTexture[assetTextureSelectedIndex]),
                         sf::IntRect({ newSpriteX, newSpriteY }, { newSpriteWidth, newSpriteHeight }));
-                    sprite->scale(sf::Vector2f(10.f, 10.f));
+                    //sprite->scale(sf::Vector2f(10.f, 10.f));
 
                     ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
                     sf::Vector2u size = sprite->getTexture().getSize();
@@ -397,7 +394,10 @@ namespace uei
             ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
 
             ImGui::TextWrapped("%s", value.name.c_str());
-
+            if (ImGui::Button("Remove"))
+            {
+                //onRemove();
+            }
             ImGui::NextColumn();
             ImGui::PopID();
         }
@@ -422,7 +422,10 @@ namespace uei
             ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
 
             ImGui::TextWrapped("%s", value.name.c_str());
-
+            if (ImGui::Button("Remove"))
+            {
+                //onRemove();
+            }
             ImGui::NextColumn();
             ImGui::PopID();
         }
@@ -479,28 +482,7 @@ namespace uei
 
         if (bShowNewPrefab)
         {
-            int selectedIndex = 0;
-            ImGui::Text("Add Components:");
-            ImGui::SameLine();
-            if (ImGui::BeginCombo("##AddComponents", " "))
-            {
-                for (int i = 0; i < UEditor::AllComponents().size(); ++i) {
-                    const bool isSelected = (selectedIndex == i);
-
-                    if (UEditor::AllComponents()[i] == "CTransform") continue;
-                    if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
-                    {
-                        prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]));
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            int i = 0;
-            for (auto& [type, value] : prefab->Components())
-            {
-                value->ShowEditor(engine, true);
-            }
+            ShowPrefabComponent();
         }
         ImGui::End();
     }
@@ -526,33 +508,61 @@ namespace uei
             bMainTab = true;
         }
         
-        if(prefab != nullptr)
+        if(bShowEditPrefab)
         {
-            int selectedIndex = 0;
-            ImGui::Text("Add Components:");
-            ImGui::SameLine();
-            if (ImGui::BeginCombo("##AddComponents", " "))
-            {
-                for (int i = 0; i < UEditor::AllComponents().size(); ++i) {
-                    const bool isSelected = (selectedIndex == i);
-
-                    if (UEditor::AllComponents()[i] == "CTransform") continue;
-                    if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
-                    {
-                        prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]));
-                    }
-                }
-                ImGui::EndCombo();
-            }
-
-            int i = 0;
-            for (auto& [type, value] : prefab->Components())
-            {
-                value->ShowEditor(engine, true);
-            }
+            ShowPrefabComponent();
         }
 
         ImGui::End();
+    }
+    void UEditorScene::ShowPrefabComponent()
+    {
+        std::vector<std::type_index> prefabComponentToRemove;
+
+        int selectedIndex = 0;
+        ImGui::Text("Add Components:");
+        ImGui::SameLine();
+        if (ImGui::BeginCombo("##AddComponents", " "))
+        {
+            for (int i = 0; i < UEditor::AllComponents().size(); i++)
+            {
+                const bool isSelected = (selectedIndex == i);
+
+                //if (UEditor::AllComponents()[i] == "CTransform") continue;
+
+                bool hasComponent = false;
+                for (auto& [key, value] : prefab->Components())
+                {
+                    if (value->ComponentName() == UEditor::AllComponents()[i])
+                    {
+                        hasComponent = true;
+                        break;
+                    }
+                }
+
+                if (hasComponent) continue;
+
+                if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
+                {
+                    prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]));
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        for (auto& [type, value] : prefab->Components())
+        {
+            value->ShowEditor(engine, [&prefabComponentToRemove, type]()
+                {
+                    prefabComponentToRemove.push_back(type);
+                }
+            );
+        }
+
+        for (int i = 0; i < prefabComponentToRemove.size(); i++)
+        {
+            prefab->RemoveComponent(prefabComponentToRemove[i]);
+        }
     }
     void UEditorScene::ShowPrefabGallery()
     {
@@ -565,8 +575,10 @@ namespace uei
         float panelWidth = ImGui::GetContentRegionAvail().x;
         int columns = std::max(1, (int)(panelWidth / cellSize));
 
+        std::vector<std::string> prefabToRemove;
+
         ImGui::Columns(columns, nullptr, false);
-        int i = 0;
+        int prefabIndex = 0;
         for (auto& [prefabName, value] : engine.Assets()->Prefabs())
         {
             ImGui::PushID(prefabName.c_str());
@@ -593,7 +605,7 @@ namespace uei
             }
             else
             {
-                if (ImGui::Button("##thumb" + (++i), ImVec2(thumbnailSize, thumbnailSize)))
+                if (ImGui::Button("##thumb" + (++prefabIndex), ImVec2(thumbnailSize, thumbnailSize)))
                 {
 
                 }
@@ -601,13 +613,7 @@ namespace uei
 
             if (ImGui::IsItemHovered())
             {
-                if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-                {
-                    prefab = value;// ->Clone();
-                    bShowEditPrefab = true;
-                    bMainTab = false;
-                }
-                else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && bSceneLoaded)
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && bSceneLoaded)
                 {
                     prefab = value;// ->Clone();
                     CSprite* sprite = prefab->GetComponent<CSprite>();
@@ -623,9 +629,28 @@ namespace uei
             }
 
             ImGui::TextWrapped("%s", prefabName.c_str());
-
+            if (ImGui::Button("Edit"))
+            {
+                prefab = value;// ->Clone();
+                bShowEditPrefab = true;
+                bMainTab = false;
+            }
+            if (ImGui::Button("Remove"))
+            {
+                prefabToRemove.push_back(prefabName);
+            }
             ImGui::NextColumn();
             ImGui::PopID();
+        }
+
+        for (auto prefabName : prefabToRemove)
+        {
+            engine.Assets()->RemovePrefab(prefabName);
+        }
+
+        if (prefabToRemove.size() > 0)
+        {
+            engine.Assets()->Save();
         }
     }
 
@@ -688,64 +713,6 @@ namespace uei
         bSceneLoaded = false;
     }
 
-    /*void UEditorScene::SaveAsset()
-    {
-        std::string assetsPath = "Assets/Assets.txt";
-        if (std::filesystem::exists(assetsPath))
-        {
-            std::string content;
-            content.clear();
-
-            for (const auto& [key, value] : engine.Assets()->Sprites())
-            {
-                content += SPRITE + " " + key + " " + value.textureName + " " +
-                    std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + "\n";
-            }
-
-            auto& allAsstTypes = engine.Assets()->AllAssetTypes();
-            if (allAsstTypes[assetTypeSelectedIndex] == SPRITE)
-            {
-                content += SPRITE + " " + newName + " " + engine.Assets()->AllTextures()[assetTextureSelectedIndex] + " " +
-                    std::to_string(newSpriteX) + " " + std::to_string(newSpriteY) + " " + std::to_string(newSpriteWidth) + " " + std::to_string(newSpriteHeight) + "\n";
-            }
-
-            for (const auto& [key, value] : engine.Assets()->Animations())
-            {
-                content += ANIMATION + " " + key + " " + value.textureName + " " +
-                    std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + " " +
-                    std::to_string(value.frame) + " " + std::to_string(value.speed) + "\n";
-            }
-
-            if (allAsstTypes[assetTypeSelectedIndex] == ANIMATION)
-            {
-                content += ANIMATION + " " + newName + " " + engine.Assets()->AllTextures()[assetTextureSelectedIndex] + " " +
-                    std::to_string(newSpriteX) + " " + std::to_string(newSpriteY) + " " + std::to_string(newSpriteWidth) + " " + std::to_string(newSpriteHeight) + " " +
-                    std::to_string(newAnimationFrame) + " " + std::to_string(newAnimationSpeed) + "\n";
-            }
-           
-            std::ofstream out(assetsPath);
-            out << content;
-            out.close();
-        }
-    }*/
-
-    //void UEditorScene::SaveUpdatePrefab()
-    //{
-    //    bShowEditPrefab = false;
-    //    SaveScene();
-    //    delete prefab;
-    //    prefab = nullptr;
-    //    bMainTab = true;
-    //}
-    /*void UEditorScene::SavePrefab()
-    {
-        prefabs.emplace(prefab->Name(), prefab->Clone());
-        SaveScene();
-        delete prefab;
-        prefab = nullptr;
-        bShowNewPrefab = false;
-        bMainTab = true;
-    }*/
     void UEditorScene::CancelPrefabSelected()
     {
         delete prefab;
@@ -811,8 +778,6 @@ namespace uei
             AddEntity(prefab->Clone(), position);
         }
     }
-
-    
 }
 
 

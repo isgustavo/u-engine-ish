@@ -9,7 +9,7 @@ namespace uei
 	{
 	}
 
-	void CTarget::ShowEditor(UEngine& inEngine, bool bIsNew)
+	void CTarget::ShowEditor(UEngine& inEngine, std::function<void()> onRemove)
 	{
 	}
 }

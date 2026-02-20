@@ -194,10 +194,6 @@ namespace uei
 		auto it = spriteAssets.find(spriteName);
 		return it->second;
 	}
-	const std::vector<std::string>& UAsset::SpritesNames() const
-	{
-		return spriteNames;
-	}
 	const uei::AnimationAsset& UAsset::Animation(const std::string& animationName) const
 	{
 		auto it = animations.find(animationName);
@@ -207,5 +203,14 @@ namespace uei
 	{
 		auto it = prefabs.find(prefabName);
 		return *it->second;
+	}
+	void UAsset::RemovePrefab(const std::string& prefabName)
+	{
+		auto it = prefabs.find(prefabName);
+		UEntity* prefab = it->second;
+		prefabs.erase(prefabName);
+		delete prefab;
+		prefab = nullptr;
+
 	}
 }

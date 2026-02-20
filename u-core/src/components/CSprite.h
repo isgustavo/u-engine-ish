@@ -16,10 +16,11 @@ namespace uei
 		~CSprite();
 
 		sf::Sprite* Sprite() { return sprite; }
-		void SetScale(int gridSize);
+		std::string SpriteName() { return spriteName; }
 		bool FlipX() { return bFlipX; }
 		bool FlipY() { return bFlipY; }
-		std::string SpriteName() { return spriteName; }
+
+		void SetScale(int gridSize);
 
 		UComponent* Clone() const override
 		{
@@ -28,12 +29,14 @@ namespace uei
 			return spriteCloned;
 		}
 
-		inline virtual std::string ComponentName() const override { return "CSprite"; }
+		inline std::string ComponentName() const override { return "CSprite"; }
 
-		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
+		void LoadComponent(class UEngine& engine, std::istream& in) override;
+		std::string Save() const override;
 
-		virtual void LoadComponent(UEngine& engine, std::istream& in) override;
-		virtual std::string Save() const override;
+	protected:
+		void OnShowEditor(class UEngine& engine, std::function<void()> onRemove) override;
+		int GetEditorSize(UEngine& engine) const override;
 
 	private:
 		CSprite(std::string inSpriteName, bool inFlipX, bool inFlipY);
@@ -41,5 +44,8 @@ namespace uei
 		std::string spriteName;
 		bool bFlipX, bFlipY;
 		sf::Sprite* sprite;
+
+		void OnComponentAdd(UEntity& entity) override;
+		void OnComponentRemove(class UEntity& entity) override;
 	};
 }

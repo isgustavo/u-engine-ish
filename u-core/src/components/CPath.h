@@ -24,11 +24,18 @@ namespace uei
 			return new CPath();
 		}
 		inline virtual std::string ComponentName() const override { return "CPath"; }
-		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
+
 		virtual void LoadComponent(UEngine& engine, std::istream& in) override;
 		virtual std::string Save() const override;
 
+	protected:
+		virtual void OnShowEditor(UEngine& inEngine, std::function<void()> onRemove) override;
+		virtual int GetEditorSize(class UEngine& engine) const override;
+
 	private:
 		const std::vector<sf::Vector2i> path;
+
+		virtual void OnComponentAdd(class UEntity& entity) override;
+		virtual void OnComponentRemove(class UEntity& entity) override;
 	};
 }

@@ -12,6 +12,7 @@ namespace uei
 	{
 		sprite = nullptr;
 	}
+
 	CSprite::CSprite(std::string inSpriteName, bool inFlipX, bool inFlipY) : UComponent()
 	{
 		spriteName = inSpriteName;
@@ -19,6 +20,7 @@ namespace uei
 		bFlipY = inFlipY;
 		sprite = nullptr;
 	}
+
 	CSprite::~CSprite()
 	{
 		delete sprite;
@@ -31,83 +33,81 @@ namespace uei
 			(bFlipY ? -1 : 1) * gridSize / sprite->getTextureRect().size.y));
 	}
 
-	void CSprite::ShowEditor(UEngine& engine, bool bIsNew)
+	void CSprite::OnShowEditor(UEngine& engine, std::function<void()> onRemove)
 	{
-		if (bIsNew)
+		auto* assets = engine.Assets();
+		const auto& allSprites = assets->SpriteNames();
+
+		int selectedIndex = -1;
+
+		for (int i = 0; i < allSprites.size(); i++)
 		{
-			ImGui::BeginChild(
-				"Sprite",
-				ImVec2(0, 180 + engine.CurrentScene()->GridSize()),
-				true
-			);
-
-			ImGui::Text("Sprite");
-			ImGui::SameLine();
-
-			auto* assets = engine.Assets();
-			const auto& allSprites = assets->SpritesNames();
-
-			int selectedIndex = -1;
-
-			for (int i = 0; i < allSprites.size(); i++)
+			if (allSprites[i] == spriteName)
 			{
-				if (allSprites[i] == spriteName)
+				selectedIndex = i;
+				break;
+			}
+		}
+
+		if (ImGui::BeginCombo("##Sprite", (selectedIndex == -1) ? " " : allSprites[selectedIndex].c_str()))
+		{
+			for (int i = 0; i < allSprites.size(); ++i) {
+				const bool isSelected = (selectedIndex == i);
+				if (ImGui::Selectable(allSprites[i].c_str(), isSelected))
 				{
 					selectedIndex = i;
-					break;
-				}
-			}
-
-			if (ImGui::BeginCombo("##Sprite", (selectedIndex == -1) ? " " : allSprites[selectedIndex].c_str()))
-			{
-				for (int i = 0; i < allSprites.size(); ++i) {
-					const bool isSelected = (selectedIndex == i);
-					if (ImGui::Selectable(allSprites[i].c_str(), isSelected))
+					if (sprite != nullptr)
 					{
-						selectedIndex = i;
-						if (sprite != nullptr)
-						{
-							delete sprite;
-							sprite = nullptr;
-						}
-						uei::SpriteAsset spriteAsset = assets->GetSpriteAsset(allSprites[i]);
-						spriteName = spriteAsset.name;
-						sprite = new sf::Sprite(assets->GetTexture(spriteAsset.textureName), sf::IntRect({ spriteAsset.x, spriteAsset.y }, { spriteAsset.width, spriteAsset.height }));
+						delete sprite;
+						sprite = nullptr;
 					}
+					uei::SpriteAsset spriteAsset = assets->GetSpriteAsset(allSprites[i]);
+					spriteName = spriteAsset.name;
+					sprite = new sf::Sprite(assets->GetTexture(spriteAsset.textureName), sf::IntRect({ spriteAsset.x, spriteAsset.y }, { spriteAsset.width, spriteAsset.height }));
 				}
-				ImGui::EndCombo();
 			}
-
-			if (sprite != nullptr)
-			{
-				ImGui::Checkbox("FlipX", &bFlipX);
-				ImGui::SameLine();
-				ImGui::Checkbox("FlipY", &bFlipY);
-
-				ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
-				sf::Vector2u size = sprite->getTexture().getSize();
-
-				ImGui::Spacing();
-				ImGui::Text(spriteName.c_str());
-				ImGui::Spacing();
-
-				uei::SpriteAsset spriteAsset = assets->GetSpriteAsset(spriteName);
-				ImVec2 uv0(
-					bFlipX ? (float)(spriteAsset.x + spriteAsset.width) / size.x : (float)spriteAsset.x / size.x,
-					bFlipY ? (float)(spriteAsset.y + spriteAsset.height) / size.y : (float)spriteAsset.y / size.y
-				);
-
-				ImVec2 uv1(
-					bFlipX ? (float)spriteAsset.x / size.x : (float)(spriteAsset.x + spriteAsset.width) / size.x,
-					bFlipY ? (float)spriteAsset.y / size.y : (float)(spriteAsset.y + spriteAsset.height) / size.y
-				);
-
-				ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
-			}
-
-			ImGui::EndChild();
-			ImGui::Spacing();
+			ImGui::EndCombo();
 		}
+
+		if (sprite != nullptr)
+		{
+			ImGui::Checkbox("FlipX", &bFlipX);
+			ImGui::SameLine();
+			ImGui::Checkbox("FlipY", &bFlipY);
+
+			ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
+			sf::Vector2u size = sprite->getTexture().getSize();
+
+			ImGui::Spacing();
+			ImGui::Text(spriteName.c_str());
+			ImGui::Spacing();
+
+			uei::SpriteAsset spriteAsset = assets->GetSpriteAsset(spriteName);
+			ImVec2 uv0(
+				bFlipX ? (float)(spriteAsset.x + spriteAsset.width) / size.x : (float)spriteAsset.x / size.x,
+				bFlipY ? (float)(spriteAsset.y + spriteAsset.height) / size.y : (float)spriteAsset.y / size.y
+			);
+
+			ImVec2 uv1(
+				bFlipX ? (float)spriteAsset.x / size.x : (float)(spriteAsset.x + spriteAsset.width) / size.x,
+				bFlipY ? (float)spriteAsset.y / size.y : (float)(spriteAsset.y + spriteAsset.height) / size.y
+			);
+
+			ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
+		}
+	}
+
+	int CSprite::GetEditorSize(UEngine& engine) const
+	{
+		return 180 + engine.CurrentScene()->GridSize();
+	}
+
+	void CSprite::OnComponentAdd(UEntity& entity) 
+	{ 
+	}
+
+	void CSprite::OnComponentRemove(UEntity& entity) 
+	{ 
 	}
 
 	void CSprite::LoadComponent(UEngine& engine, std::istream& in)

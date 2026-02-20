@@ -21,16 +21,26 @@ namespace uei
 			return new CTransform(sf::Vector2f(this->position.x, this->position.y));
 		}
 		inline virtual std::string ComponentName() const override { return "CTransform"; }
-		virtual void ShowEditor(UEngine& inEngine, bool bIsNew) override;
+
 		virtual void LoadComponent(UEngine& engine, std::istream& in) override;
 		virtual std::string Save() const override;
 
 		//void Update(const float deltaTime);
+	protected: 
+		virtual void OnShowEditor(UEngine& engine, std::function<void()> onRemove) override;
+		virtual int GetEditorSize(UEngine& engine) const override;
 
 	private:
+		
 		sf::Vector2f position;
 		sf::Vector2f positionLastUpdate;
 		bool bUpdate;
+
+		virtual void OnComponentAdd(class UEntity& entity) override;
+		virtual void OnComponentRemove(class UEntity& entity) override;
+
+		// Inherited via UComponent
+
 		//sf::Vector2f velocity;
 		//Vec2f scale;
 		//float angle;

@@ -2,11 +2,13 @@
 
 #include "entities/UEntity.h"
 #include "systems/USystem.h"
+
 #include "UEngine.h"
 #include <memory>
 #include <vector>
 #include <map>
 #include <unordered_map>
+
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/View.hpp>
 

@@ -37,6 +37,7 @@ namespace uei
 
 		void AddComponent(UComponent* component)
 		{
+			component->OnComponentAdd(*this);
 			components[typeid(*component)] = component;
 		}
 
@@ -59,16 +60,28 @@ namespace uei
 
 			return components.find(typeid(T)) != components.end();
 		}
-		template<typename T>
-		void RemoveComponent()
-		{
-			static_assert(std::is_base_of_v<uei::UComponent, T>,
-				"T must derive from UComponent");
+		//template<typename T>
+		//void RemoveComponent()
+		//{
+		//	static_assert(std::is_base_of_v<uei::UComponent, T>,
+		//		"T must derive from UComponent");
 
-			auto component = components.find(typeid(T));
+		//	auto component = components.find(typeid(T));
+		//	if (component != components.end())
+		//	{
+		//		
+		//		components.erase(component);
+		//	}
+		//}
+
+		void RemoveComponent(std::type_index value)
+		{
+			auto component = components.find(value);
 			if (component != components.end())
 			{
-				components.erase(component);
+				auto* c = component->second;
+				c->OnComponentRemove(*this);
+				components.erase(value);
 			}
 		}
 

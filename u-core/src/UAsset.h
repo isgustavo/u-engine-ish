@@ -44,12 +44,14 @@ namespace uei
 
 		const uei::SpriteAsset& GetSpriteAsset(const std::string& spriteName) const;
 		const std::unordered_map<std::string, uei::SpriteAsset>& AllSpriteAssets() { return spriteAssets; }
-		const std::vector<std::string>& SpritesNames() const;
+		const std::vector<std::string>& SpriteNames() const { return spriteNames; };
 
 		const uei::AnimationAsset& Animation(const std::string& animationName) const;
 		const std::unordered_map<std::string, uei::AnimationAsset>& Animations() { return animations; }
+		const std::vector<std::string>& AnimationNames() const { return animationNames; }
 
 		const uei::UEntity& GetPrefab(const std::string& prefabName) const;
+		void RemovePrefab(const std::string& prefabName);
 		const std::unordered_map<std::string, uei::UEntity*>& Prefabs() { return prefabs; }
 
 		const sf::Font& GetFont(const std::string& fontName) const;
