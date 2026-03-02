@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include <components/CTransform.h>
 #include <components/CSprite.h>
+#include <components/CIdleAnimation.h>
 #include <systems/SDrawSystem.h>
 
 #include <unordered_map>
@@ -13,6 +14,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+
 
 namespace uei
 {
@@ -32,6 +34,8 @@ namespace uei
 
     void UEditorScene::OnUpdate()
     {
+        currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
+
         if (bMainTab)
         {
             ImGui::Begin("Editor");
@@ -65,9 +69,9 @@ namespace uei
             CTransform* transform = prefab->GetComponent<CTransform>();
             CSprite* sprite = prefab->GetComponent<CSprite>();
             
-            sf::Vector2i localPosition = sf::Mouse::getPosition(engine.RenderWindow());
-            int x = ((localPosition.x / gridSize) * gridSize) - (sprite->FlipX() ? gridSize : 0);
-            int y = ((localPosition.y / gridSize) * gridSize) + (sprite->FlipY() ? gridSize : 0);
+            sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
+            int x = ((mousePosition.x / gridSize) * gridSize) + (sprite->FlipX() ? gridSize : 0);
+            int y = ((mousePosition.y / gridSize) * gridSize) + (sprite->FlipY() ? gridSize : 0);
             
             transform->SetPosition(sf::Vector2f(x, y));
         }
@@ -401,7 +405,6 @@ namespace uei
             ImGui::NextColumn();
             ImGui::PopID();
         }
-        currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
         for (auto& [key, value] : engine.Assets()->Animations())
         {
             ImGui::PushID(key.c_str());
@@ -439,7 +442,7 @@ namespace uei
             {
                 bMainTab = false;
                 prefab = new UEntity();
-                prefab->AddComponent<CTransform>(sf::Vector2f(0.f, 0.f));
+                prefab->AddComponent<CTransform>();
                 bShowNewPrefab = true;
             }
 
@@ -582,8 +585,32 @@ namespace uei
         for (auto& [prefabName, value] : engine.Assets()->Prefabs())
         {
             ImGui::PushID(prefabName.c_str());
+            bool bShowDefaultThumb = true;
+            if (value->HasComponent<CIdleAnimation>())
+            {
+                CIdleAnimation* idleAnimation = value->GetComponent<CIdleAnimation>();
+                if (idleAnimation->IdleAnimation() != EMPTY)
+                {
+                    auto& data = engine.Assets()->Animation(idleAnimation->IdleAnimation());
 
-            if (value->HasComponent<CSprite>())
+                    int currentAnimationFrame = (int)(currentAnimationDeltaTime * data.speed) % data.frame;
+                    int spriteX = data.x + (currentAnimationFrame * data.width);
+
+                    sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
+                        sf::IntRect({ spriteX, data.y }, { data.width, data.height }));
+
+                    ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
+                    sf::Vector2u size = sprite.getTexture().getSize();
+
+                    ImVec2 uv0((float)spriteX / size.x, (float)data.y / size.y);
+                    ImVec2 uv1((float)(spriteX + data.width) / size.x, (float)(data.y + data.height) / size.y);
+
+                    ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
+
+                    bShowDefaultThumb = false;
+                }
+            }
+            else if (value->HasComponent<CSprite>())
             {
                 CSprite* sprite = value->GetComponent<CSprite>();
                 auto& spriteAsset = engine.Assets()->GetSpriteAsset(sprite->SpriteName());
@@ -602,8 +629,11 @@ namespace uei
                 );
 
                 ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
+
+                bShowDefaultThumb = false;
             }
-            else
+            
+            if (bShowDefaultThumb)
             {
                 if (ImGui::Button("##thumb" + (++prefabIndex), ImVec2(thumbnailSize, thumbnailSize)))
                 {
@@ -670,6 +700,13 @@ namespace uei
     }
     void UEditorScene::LoadScene()
     {
+        std::string levelPath = "Assets/" + std::string(editorNameBuffer) + ".txt";
+        if (!std::filesystem::exists(levelPath))
+        {
+            bSceneLoaded = false;
+            bNewScene = true;
+            return;
+        }
         Restart(editorNameBuffer);
         bSceneLoaded = true;
         bNewScene = false;
@@ -770,12 +807,12 @@ namespace uei
         if (bPrefabSelected)
         {
             sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-            
             CSprite* sprite = prefab->GetComponent<CSprite>();
-            int x = ((mousePosition.x / gridSize) * gridSize) - (sprite->FlipX() ? -gridSize : 0);
-            sf::Vector2f position = sf::Vector2f(x, (mousePosition.y / gridSize) * gridSize);
+            
+            int x = ((mousePosition.x / gridSize) * gridSize) + (sprite->FlipX() ? gridSize : 0);
+            int y = ((mousePosition.y / gridSize) * gridSize) + (sprite->FlipY() ? gridSize : 0);
 
-            AddEntity(prefab->Clone(), position);
+            AddEntity(prefab->Clone(), sf::Vector2f(x, y));
         }
     }
 }

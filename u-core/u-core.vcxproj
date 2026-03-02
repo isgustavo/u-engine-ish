@@ -141,8 +141,12 @@
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\components\CAnimation.cpp" />
+    <ClCompile Include="src\components\CIdleAnimation.cpp" />
+    <ClCompile Include="src\components\CMovement.cpp" />
     <ClCompile Include="src\components\CMovementAnimation.cpp" />
+    <ClCompile Include="src\components\CObstacle.cpp" />
     <ClCompile Include="src\components\CPath.cpp" />
+    <ClCompile Include="src\components\CPlayer.cpp" />
     <ClCompile Include="src\components\CSprite.cpp" />
     <ClCompile Include="src\components\CTarget.cpp" />
     <ClCompile Include="src\components\UComponent.cpp" />
@@ -274,11 +278,14 @@
     <ClInclude Include="src\components\CAnimation.h" />
     <ClInclude Include="src\components\CCircle.h" />
     <ClInclude Include="src\components\CFindPathTo.h" />
+    <ClInclude Include="src\components\CIdleAnimation.h" />
+    <ClInclude Include="src\components\CMovement.h" />
     <ClInclude Include="src\components\CMovementAnimation.h" />
     <ClInclude Include="src\components\CNavGridModifier.h" />
     <ClInclude Include="src\components\CObstacle.h" />
     <ClInclude Include="src\components\CPath.h" />
     <ClInclude Include="src\components\CPathRequest.h" />
+    <ClInclude Include="src\components\CPlayer.h" />
     <ClInclude Include="src\components\CRect.h" />
     <ClInclude Include="src\components\CSpeed.h" />
     <ClInclude Include="src\components\CSprite.h" />
