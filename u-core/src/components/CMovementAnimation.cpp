@@ -4,42 +4,57 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
+#include <sstream>
 #include <imgui.h>
 #include "CSprite.h"
+#include "CMovement.h"
+#include "CIdleAnimation.h"
 
 namespace uei
 {
-	CMovementAnimation::CMovementAnimation() : UComponent(), animations()
+	CMovementAnimation::CMovementAnimation() : UComponent(), animations() { }
+
+	CMovementAnimation::CMovementAnimation(const std::unordered_map<std::string, std::string>& inAnimations) : UComponent()
 	{
-		for (int i = 0; i < AllLocomotionTypes().size(); ++i) 
+		for (auto& [key, value] : inAnimations)
 		{
-			animations.emplace(AllLocomotionTypes()[i], "");
+			animations[key] = value;
 		}
 	}
+
 	CMovementAnimation::~CMovementAnimation()
 	{
 	}
-	void CMovementAnimation::OnShowEditor(UEngine& engine, std::function<void()> onRemove)
+	
+	void CMovementAnimation::OnShowEditor(UEngine& engine)
 	{
 		auto* assets = engine.Assets();
 		const auto& allAnimationNames = assets->AnimationNames();
 
-		if (!animations.empty())
+		//if (!animations.empty())
 		{
 			int animationIndex = 0;
-			for (auto& [key, value] : animations)
+			//for (auto& [key, value] : animations)
+			for (const std::string& key : AllLocomotionTypes())
 			{
+				auto animationName = animations.find(key);
+				std::string value = " ";
+				if (animationName != animations.end())
+				{
+					value = animationName->second;
+				}
+
 				ImGui::Text(key.c_str());
 				ImGui::SameLine();
 				ImGui::PushID(++animationIndex);
 				if (ImGui::Button("Clear"))
 				{
-					animations[key] = "";
+					animations[key] = EMPTY;
 				}
 				ImGui::PopID();
 				ImGui::PushItemWidth(260);
 				std::string id = "##AnimationCombo_" + std::to_string(++animationIndex);
-				if (ImGui::BeginCombo(id.c_str(), animations[key].c_str()))
+				if (ImGui::BeginCombo(id.c_str(), value.c_str()))
 				{
 					for (int i = 0; i < allAnimationNames.size(); ++i)
 					{
@@ -56,11 +71,11 @@ namespace uei
 				//ImGui::SameLine();
 				//ImGui::Checkbox("FlipY", &bFlipY);
 
-				if (!(animations[key]).empty())
+				if (!(animations[key] == EMPTY))
 				{
 					uei::AnimationAsset animationAsset = assets->Animation(animations[key]);
 
-					currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
+					currentAnimationDeltaTime += ImGui::GetIO().DeltaTime; // ToDo delta time
 					int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.speed) % animationAsset.frame;
 					int spriteX = animationAsset.x + (currentAnimationFrame * animationAsset.width);
 
@@ -92,37 +107,48 @@ namespace uei
 
 	int CMovementAnimation::GetEditorSize(UEngine& engine) const
 	{
-		return 180 + engine.CurrentScene()->GridSize() + animations.size() * 25;
+		return bIsRequiredByOtherComponent ? 33 : 180 + engine.CurrentScene()->GridSize() + (animations.size() * 25);
 	}
 
 	void CMovementAnimation::OnComponentAdd(UEntity& entity)
 	{
-		auto* sprite = entity.GetComponent<CSprite>();
-		if (sprite == nullptr)
-		{
-			sprite = new CSprite();
-			entity.AddComponent(sprite);
-		}
-
-		sprite->SetRequiredByOtherComponent(true);
-
+		entity.SetRequiredByOtherComponent<CSprite>(true);
+		entity.SetRequiredByOtherComponent<CIdleAnimation>(true);
+		entity.SetRequiredByOtherComponent<CMovement>(true);
 	}
 
 	void CMovementAnimation::OnComponentRemove(UEntity& entity)
 	{
-		auto* sprite = entity.GetComponent<CSprite>();
-		if (sprite != nullptr)
-		{
-			sprite->SetRequiredByOtherComponent(false);
-		}
+		entity.SetRequiredByOtherComponent<CSprite>(false);
+		entity.SetRequiredByOtherComponent<CIdleAnimation>(false);
+		entity.SetRequiredByOtherComponent<CMovement>(false);
 	}
 
 	void CMovementAnimation::LoadComponent(UEngine& engine, std::istream& in)
 	{
+		std::string a0, a1, a2, a3, a4, a5, a6, a7;
+		in >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7;
+
+		animations[AllLocomotionTypes()[0]] = a0;
+		animations[AllLocomotionTypes()[1]] = a1;
+		animations[AllLocomotionTypes()[2]] = a2;
+		animations[AllLocomotionTypes()[3]] = a3;
+		animations[AllLocomotionTypes()[4]] = a4;
+		animations[AllLocomotionTypes()[5]] = a5;
+		animations[AllLocomotionTypes()[6]] = a6;
+		animations[AllLocomotionTypes()[7]] = a7;
 	}
 
 	std::string CMovementAnimation::Save() const
 	{
-		return std::string();
+		std::stringstream ss;
+
+		for (const std::string& key : allLocomotionTypesName)
+		{
+			auto it = animations.find(key);
+			ss << (it != animations.end() ? it->second : EMPTY) << " ";
+		}
+
+		return ss.str();
 	}
 }

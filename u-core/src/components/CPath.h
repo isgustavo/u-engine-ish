@@ -29,7 +29,7 @@ namespace uei
 		virtual std::string Save() const override;
 
 	protected:
-		virtual void OnShowEditor(UEngine& inEngine, std::function<void()> onRemove) override;
+		virtual void OnShowEditor(UEngine& inEngine) override;
 		virtual int GetEditorSize(class UEngine& engine) const override;
 
 	private:

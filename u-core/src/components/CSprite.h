@@ -1,5 +1,6 @@
 #pragma once
 #include "UComponent.h"
+#include "UEngine.h"
 
 #include <SFML/Graphics/Sprite.hpp>
 
@@ -24,9 +25,14 @@ namespace uei
 
 		UComponent* Clone() const override
 		{
-			CSprite* spriteCloned = new CSprite(spriteName, bFlipX, bFlipY);
-			spriteCloned->sprite = new sf::Sprite(*sprite);
-			return spriteCloned;
+			CSprite* s = nullptr;
+			if (spriteName != EMPTY)
+			{
+				s = new CSprite(spriteName, bFlipX, bFlipY);
+				s->sprite = new sf::Sprite(*sprite);
+			}
+
+			return s;
 		}
 
 		inline std::string ComponentName() const override { return "CSprite"; }
@@ -35,7 +41,7 @@ namespace uei
 		std::string Save() const override;
 
 	protected:
-		void OnShowEditor(class UEngine& engine, std::function<void()> onRemove) override;
+		void OnShowEditor(class UEngine& engine) override;
 		int GetEditorSize(UEngine& engine) const override;
 
 	private:

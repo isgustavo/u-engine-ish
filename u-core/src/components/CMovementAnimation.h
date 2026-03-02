@@ -17,14 +17,13 @@ namespace uei
 
 		UComponent* Clone() const override
 		{
-			return nullptr;
+			return new CMovementAnimation(animations);
 		}
 
 		std::vector<std::string>& AllLocomotionTypes()
 		{
 			if (allLocomotionTypesName.size() == 0)
 			{
-				//allLocomotionTypesName.push_back(" ");
 				allLocomotionTypesName.push_back("UP");
 				allLocomotionTypesName.push_back("LEFT");
 				allLocomotionTypesName.push_back("DOWN");
@@ -43,10 +42,11 @@ namespace uei
 		std::string Save() const override;
 	
 	protected:
-		void OnShowEditor(UEngine& inEngine, std::function<void()> onRemove) override;
+		void OnShowEditor(UEngine& inEngine) override;
 		int GetEditorSize(UEngine& engine) const override;
 
 	private:
+		CMovementAnimation(const std::unordered_map<std::string, std::string>& inAnimations);
 
 		std::unordered_map<std::string, std::string> animations;
 

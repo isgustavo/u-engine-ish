@@ -33,8 +33,13 @@ namespace uei
 			(bFlipY ? -1 : 1) * gridSize / sprite->getTextureRect().size.y));
 	}
 
-	void CSprite::OnShowEditor(UEngine& engine, std::function<void()> onRemove)
+	void CSprite::OnShowEditor(UEngine& engine)
 	{
+		if (bIsRequiredByOtherComponent)
+		{
+			return;
+		}
+
 		auto* assets = engine.Assets();
 		const auto& allSprites = assets->SpriteNames();
 
@@ -99,7 +104,7 @@ namespace uei
 
 	int CSprite::GetEditorSize(UEngine& engine) const
 	{
-		return 180 + engine.CurrentScene()->GridSize();
+		return bIsRequiredByOtherComponent ? 33 : 180 + engine.CurrentScene()->GridSize();
 	}
 
 	void CSprite::OnComponentAdd(UEntity& entity) 
@@ -110,21 +115,24 @@ namespace uei
 	{ 
 	}
 
-	void CSprite::LoadComponent(UEngine& engine, std::istream& in)
+	void uei::CSprite::LoadComponent(UEngine& engine, std::istream& in)
 	{
 		std::string flipX;
 		std::string flipY;
 		in >> spriteName >> flipX >> flipY;
 		bFlipX = flipX == "1" ? true : false;
 		bFlipY = flipY == "1" ? true : false;
-		uei::SpriteAsset data = engine.Assets()->GetSpriteAsset(spriteName);
-		sprite = new sf::Sprite(engine.Assets()->GetTexture(data.textureName), sf::IntRect({ data.x, data.y }, { data.width, data.height }));
-		sprite->setScale(sf::Vector2f((bFlipX ? -1 : 1) * sprite->getTextureRect().size.x, (bFlipY ? -1 : 1) * sprite->getTextureRect().size.y));
+		if (spriteName != EMPTY)
+		{
+			uei::SpriteAsset data = engine.Assets()->GetSpriteAsset(spriteName);
+			sprite = new sf::Sprite(engine.Assets()->GetTexture(data.textureName), sf::IntRect({ data.x, data.y }, { data.width, data.height }));
+			sprite->setScale(sf::Vector2f((bFlipX ? -1 : 1) * sprite->getTextureRect().size.x, (bFlipY ? -1 : 1) * sprite->getTextureRect().size.y));
+		}
 	}
 
 	std::string CSprite::Save() const
 	{
-		return spriteName + " " + (bFlipX ? "1" : "0") + " " + (bFlipY ? "1" : "0");
+		return (spriteName.empty() ? EMPTY : spriteName) + " " + (bFlipX ? "1" : "0") + " " + (bFlipY ? "1" : "0");
 	}
 }
 

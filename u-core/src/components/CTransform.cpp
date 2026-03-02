@@ -62,7 +62,7 @@ namespace uei
     //    ImGui::EndChild();
     //    ImGui::Spacing();
     //}
-    void CTransform::OnShowEditor(UEngine& engine, std::function<void()> onRemove)
+    void CTransform::OnShowEditor(UEngine& engine)
     {
 
     }
@@ -76,7 +76,7 @@ namespace uei
     void CTransform::OnComponentRemove(UEntity& entity)
     {
     }
-    void CTransform::LoadComponent(UEngine& engine, std::istream& in)
+    void uei::CTransform::LoadComponent(UEngine& engine, std::istream& in)
     {
         float x, y;
         in >> x >> y;

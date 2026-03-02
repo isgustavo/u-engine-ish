@@ -7,7 +7,7 @@ namespace uei
 		return path;
 	}
 
-    void CPath::OnShowEditor(UEngine& inEngine, std::function<void()> onRemove)
+    void CPath::OnShowEditor(UEngine& inEngine)
     {
 
     }

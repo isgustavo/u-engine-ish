@@ -15,7 +15,7 @@ namespace uei
 		UComponent();
 
 		virtual std::string ComponentName() const = 0;
-		void SetRequiredByOtherComponent(bool value) { bIsRequiredByOtherComponent = value; }
+		void SetRequiredByOtherComponent(bool value);
 
 		virtual UComponent* Clone() const = 0;
 
@@ -24,15 +24,17 @@ namespace uei
 	
 	protected:
 		bool bCanRemove;
+		int requiredByOtherComponent;
 		bool bIsRequiredByOtherComponent;
 
-		virtual void OnShowEditor(class UEngine& engine, std::function<void()> onRemove) = 0;
+		virtual void OnShowEditor(class UEngine& engine) = 0;
 		virtual int GetEditorSize(class UEngine& engine) const = 0;
+
+		virtual void OnComponentAdd(class UEntity& entity) = 0;
+		virtual void OnComponentRemove(class UEntity& entity) = 0;
 
 	private:
 		virtual void ShowEditor(class UEngine& engine, std::function<void()> onRemove);
 
-		virtual void OnComponentAdd(class UEntity& entity) = 0;
-		virtual void OnComponentRemove(class UEntity& entity) = 0;
 	};
 }

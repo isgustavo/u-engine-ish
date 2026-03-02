@@ -25,14 +25,14 @@ namespace uei
 		void SetActive(bool value);
 		std::unordered_map<std::type_index, uei::UComponent*>& Components();
 
-		template<typename T, typename... Args>
-		void AddComponent(Args&&... args)
+		template<typename T>
+		T* AddComponent()
 		{
-			static_assert(std::is_base_of_v<uei::UComponent, T>,
-				"T must derive from UComponent");
+			static_assert(std::is_base_of_v<uei::UComponent, T>, "T must derive from UComponent");
 
-			components[typeid(T)] = new T(std::forward<Args>(args)...);
-				//std::make_unique<T>(std::forward<Args>(args)...);
+			T* t = new T();
+			components[typeid(T)] = t;
+			return t;
 		}
 
 		void AddComponent(UComponent* component)
@@ -52,6 +52,7 @@ namespace uei
 				? static_cast<T*>(component->second)
 				: nullptr;
 		}
+
 		template<typename T>
 		bool HasComponent() const
 		{
@@ -60,19 +61,31 @@ namespace uei
 
 			return components.find(typeid(T)) != components.end();
 		}
-		//template<typename T>
-		//void RemoveComponent()
-		//{
-		//	static_assert(std::is_base_of_v<uei::UComponent, T>,
-		//		"T must derive from UComponent");
 
-		//	auto component = components.find(typeid(T));
-		//	if (component != components.end())
-		//	{
-		//		
-		//		components.erase(component);
-		//	}
-		//}
+		template<typename T>
+		T* GetOrAddComponent()
+		{
+			static_assert(std::is_base_of_v<uei::UComponent, T>, "T must derive from UComponent");
+
+			auto* component = GetComponent<T>();
+			if (component == nullptr)
+			{
+				component = AddComponent<T>();
+			}
+			
+			return component;
+		}
+
+		template<typename T>
+		T* SetRequiredByOtherComponent(bool value)
+		{
+			static_assert(std::is_base_of_v<uei::UComponent, T>,
+				"T must derive from UComponent");
+
+			UComponent* component = GetOrAddComponent<T>();
+			component->SetRequiredByOtherComponent(value);
+			return static_cast<T*>(component);
+		}
 
 		void RemoveComponent(std::type_index value)
 		{
@@ -93,6 +106,12 @@ namespace uei
 			{
 				entity->components[key] = value->Clone();
 			}
+
+			for (const auto& [key, value] : entity->components)
+			{
+				entity->components[key]->OnComponentAdd(*entity);
+			}
+
 			return entity;
 		}
 
