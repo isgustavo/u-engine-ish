@@ -6,21 +6,21 @@ namespace uei
 	class UEditorScene : public UScene
 	{
 	public:
-		UEditorScene(UEngine& inEngine);
+		UEditorScene(UEngine& inEngine, std::string levelName);
 		~UEditorScene();
 
 		virtual void OnStart() override;
-		virtual void OnUpdate() override;
+		virtual void OnUpdate(float deltaTime) override;
 		virtual void OnDraw() override;
 		virtual void OnMouseLeft() override;
 		virtual void OnMouseRight() override;
 
 	private:
-		//char sceneName[128] = "";
 		class UEntity* prefab;
 
 		char editorNameBuffer[128] = "";
 		bool bSceneLoaded;
+		std::string levelNameLoaded;
 		bool bNewScene;
 		bool bMainTab;
 		bool bShowNewAsset;

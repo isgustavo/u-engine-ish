@@ -3,14 +3,15 @@
 
 namespace uei
 {
-    class SDrawSystem : public USystem
+    class SStaticDrawSystem : public USystem
     {
     public:
-        SDrawSystem(bool isEditor = true);
+        SStaticDrawSystem();
 
         virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
 
     private:
-        bool bIsEditor;
+        bool bIsDirty;
+        sf::VertexArray vertexArray;
     };
 }

@@ -23,7 +23,7 @@ namespace uei
 		friend class UEditor;
 
 	public:
-		UScene(UEngine& inEngine);
+		UScene(UEngine& inEngine, std::string levelName);
 		~UScene();
 
 		template<typename T, typename... Args>
@@ -38,7 +38,8 @@ namespace uei
 		std::vector<std::unique_ptr<uei::UEntity>>& Entities() { return entities; }
 
 		virtual void OnStart() = 0;
-		virtual void OnUpdate() = 0;
+		virtual void OnUpdate(float deltaTime) = 0;
+		//virtual void OnFixedUpdate(float fixedDeltaTime) = 0;
 		virtual void OnDraw() = 0;
 		virtual void OnMouseLeft() = 0;
 		virtual void OnMouseRight() = 0;
@@ -77,11 +78,13 @@ namespace uei
 		std::vector<uei::UEntity*> toAdd;
 
 		bool bIsPause;
+		bool bIsStarted = false;
 		bool bIsNavGridDirty = false;
 
-		void Start(std::string levelName);
+		void Start();
 		void Load(std::string levelName);
-		void Update();
+		void Update(float deltaTime);
+		//void FixedUpdate(float fixedDeltaTime);
 		void UpdateNavGrid();
 		void AddNewEntities();
 		void RemoveInactiveEntities();

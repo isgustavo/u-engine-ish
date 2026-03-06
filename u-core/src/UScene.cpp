@@ -14,10 +14,15 @@
 
 namespace uei
 {
-	UScene::UScene(UEngine& inEngine) :
+	UScene::UScene(UEngine& inEngine, std::string levelName) :
 		engine(inEngine),
 		navGrid(), entities(), entitiesMap(), toAdd(), bIsPause(false)
 	{ 
+		if (levelName != EMPTY)
+		{
+			Load(levelName);
+		}
+
 		view = sf::View();
 		view.setSize(engine.ScreenSize());
 		view.setCenter({ engine.ScreenSize().x * 0.5f, engine.ScreenSize().y * 0.5f });
@@ -39,19 +44,16 @@ namespace uei
 		entitiesMap.clear();
 	}
 
-	void UScene::Start(std::string levelName)
+	void UScene::Start()
 	{
-		if (!levelName.empty())
-		{
-			Load(levelName);
-		}
-
 		OnStart();
+		bIsStarted = true;
 	}
 	void UScene::Restart(std::string levelName)
 	{
 		ClearScene();
-		Start(levelName);
+		Load(levelName);
+		Start();
 	}
 	void UScene::Load(std::string levelName)
 	{
@@ -100,20 +102,25 @@ namespace uei
 		delete newPrefab;
 		newPrefab = nullptr;
 	}
-	void UScene::Update()
+	
+	void uei::UScene::Update(float deltaTime)
 	{
 		AddNewEntities();
 		RemoveInactiveEntities();
 		if (bIsNavGridDirty)
 			UpdateNavGrid();
-		OnUpdate();
+		OnUpdate(deltaTime);
 	}
 
 	void UScene::Draw()
 	{
-		//DrawGrid();
+		for (auto& s : systems)
+		{
+			s.get()->Update(engine, entities);
+		}
 		OnDraw();
 	}
+
 	void UScene::AddEntity(UEntity* entity)
 	{
 		int index = entities.size();
@@ -125,11 +132,11 @@ namespace uei
 		AddEntity(entity);
 		CTransform* transform = entity->GetComponent<CTransform>();
 		transform->SetPosition(position);
-		if (entity->HasComponent<CSprite>())
-		{
-			CSprite* sprite = entity->GetComponent<CSprite>();
-			sprite->SetScale(gridSize);
-		}
+		//if (entity->HasComponent<CSprite>())
+		//{
+		//	CSprite* sprite = entity->GetComponent<CSprite>();
+			//sprite->SetScale(gridSize);
+		//}
 	}
 
 	void UScene::AddNewEntities()

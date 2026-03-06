@@ -16,12 +16,12 @@ namespace uei
 		CSprite();
 		~CSprite();
 
-		sf::Sprite* Sprite() { return sprite; }
+		//sf::Sprite* Sprite() { return sprite; }
 		std::string SpriteName() { return spriteName; }
 		bool FlipX() { return bFlipX; }
 		bool FlipY() { return bFlipY; }
 
-		void SetScale(int gridSize);
+		//void SetScale(int gridSize);
 
 		UComponent* Clone() const override
 		{
@@ -29,9 +29,8 @@ namespace uei
 			if (spriteName != EMPTY)
 			{
 				s = new CSprite(spriteName, bFlipX, bFlipY);
-				s->sprite = new sf::Sprite(*sprite);
+				//s->sprite = new sf::Sprite(*sprite);
 			}
-
 			return s;
 		}
 
@@ -49,7 +48,7 @@ namespace uei
 
 		std::string spriteName;
 		bool bFlipX, bFlipY;
-		sf::Sprite* sprite;
+		//sf::Sprite* sprite;
 
 		void OnComponentAdd(UEntity& entity) override;
 		void OnComponentRemove(class UEntity& entity) override;

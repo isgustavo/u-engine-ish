@@ -18,7 +18,7 @@
 
 namespace uei
 {
-    UEditorScene::UEditorScene(UEngine& inEngine) : UScene(inEngine) { }
+    UEditorScene::UEditorScene(UEngine& inEngine, std::string levelName) : UScene(inEngine, levelName) { }
 
     UEditorScene::~UEditorScene()
     {
@@ -32,7 +32,7 @@ namespace uei
         AddSystem<SDrawSystem>();
     }
 
-    void UEditorScene::OnUpdate()
+    void UEditorScene::OnUpdate(float deltaTime)
     {
         currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
 
@@ -86,18 +86,15 @@ namespace uei
 
         if (bPrefabSelected)
         {
-            CTransform* transform = prefab->GetComponent<CTransform>();
-            CSprite* sprite = prefab->GetComponent<CSprite>();
+            CTransform* cTransform = prefab->GetComponent<CTransform>();
+            CSprite* cSprite = prefab->GetComponent<CSprite>();
 
-            sf::Sprite* sp = sprite->Sprite();
-            sp->setPosition(transform->Position());
+            uei::SpriteAsset spriteAsset = engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
+            sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(spriteAsset.textureName),
+                sf::IntRect({ spriteAsset.x, spriteAsset.y }, { spriteAsset.width, spriteAsset.height }));
+            sprite.setPosition(cTransform->Position());
 
-            engine.RenderWindow().draw(*sp);
-        }
-            
-        for (auto& s : systems)
-        {
-            s.get()->Update(engine, entities);
+            engine.RenderWindow().draw(sprite);
         }
     }
 
@@ -155,8 +152,8 @@ namespace uei
         }
         if (ImGui::Button("Save/Play"))
         {
-            //SaveLevel();
-            //PlayLevel();
+            SaveScene();
+            engine.AddGameScene(levelNameLoaded);
         }
         if (ImGui::Button("Save/Close"))
         {
@@ -409,7 +406,7 @@ namespace uei
         {
             ImGui::PushID(key.c_str());
 
-            auto& data = engine.Assets()->Animation(value.name);
+            auto& data = engine.Assets()->GetAnimation(value.name);
             int currentAnimationFrame = (int)(currentAnimationDeltaTime * data.speed) % data.frame;
             int spriteX = data.x + (currentAnimationFrame * data.width);
 
@@ -591,7 +588,7 @@ namespace uei
                 CIdleAnimation* idleAnimation = value->GetComponent<CIdleAnimation>();
                 if (idleAnimation->IdleAnimation() != EMPTY)
                 {
-                    auto& data = engine.Assets()->Animation(idleAnimation->IdleAnimation());
+                    auto& data = engine.Assets()->GetAnimation(idleAnimation->IdleAnimation());
 
                     int currentAnimationFrame = (int)(currentAnimationDeltaTime * data.speed) % data.frame;
                     int spriteX = data.x + (currentAnimationFrame * data.width);
@@ -612,20 +609,23 @@ namespace uei
             }
             else if (value->HasComponent<CSprite>())
             {
-                CSprite* sprite = value->GetComponent<CSprite>();
-                auto& spriteAsset = engine.Assets()->GetSpriteAsset(sprite->SpriteName());
+                CSprite* cSprite = value->GetComponent<CSprite>();
+                auto& data = engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
                 
-                ImTextureID id = (ImTextureID)(intptr_t)sprite->Sprite()->getTexture().getNativeHandle();
-                sf::Vector2u size = sprite->Sprite()->getTexture().getSize();
+                sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
+                    sf::IntRect({ data.x, data.y }, { data.width, data.height }));
+
+                ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
+                sf::Vector2u size = sprite.getTexture().getSize();
 
                 ImVec2 uv0(
-                    sprite->FlipX() ? (float)(spriteAsset.x + spriteAsset.width) / size.x : (float)spriteAsset.x / size.x,
-                    sprite->FlipY() ? (float)(spriteAsset.y + spriteAsset.height) / size.y : (float)spriteAsset.y / size.y
+                    cSprite->FlipX() ? (float)(data.x + data.width) / size.x : (float)data.x / size.x,
+                    cSprite->FlipY() ? (float)(data.y + data.height) / size.y : (float)data.y / size.y
                 );
 
                 ImVec2 uv1(
-                    sprite->FlipX() ? (float)spriteAsset.x / size.x : (float)(spriteAsset.x + spriteAsset.width) / size.x,
-                    sprite->FlipY() ? (float)spriteAsset.y / size.y : (float)(spriteAsset.y + spriteAsset.height) / size.y
+                    cSprite->FlipX() ? (float)data.x / size.x : (float)(data.x + data.width) / size.x,
+                    cSprite->FlipY() ? (float)data.y / size.y : (float)(data.y + data.height) / size.y
                 );
 
                 ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
@@ -646,12 +646,16 @@ namespace uei
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && bSceneLoaded)
                 {
                     prefab = value;// ->Clone();
-                    CSprite* sprite = prefab->GetComponent<CSprite>();
-                    if (sprite != nullptr)
+                    CSprite* cSprite = prefab->GetComponent<CSprite>();
+                    if (cSprite != nullptr)
                     {
-                        sf::Sprite* sp = sprite->Sprite();
-                        sp->setScale(sf::Vector2f((sprite->FlipX() ? -1 : 1) * (gridSize / sp->getTextureRect().size.x),
-                            (sprite->FlipY() ? -1 : 1) * gridSize / sp->getTextureRect().size.y));
+                        auto& data = engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
+
+                        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
+                            sf::IntRect({ data.x, data.y }, { data.width, data.height }));
+
+                        sprite.setScale(sf::Vector2f((cSprite->FlipX() ? -1 : 1) * (gridSize / sprite.getTextureRect().size.x),
+                            		(cSprite->FlipY() ? -1 : 1) * gridSize / sprite.getTextureRect().size.y));
                     }
                     bPrefabSelected = true;
                     bMainTab = false;
@@ -707,7 +711,8 @@ namespace uei
             bNewScene = true;
             return;
         }
-        Restart(editorNameBuffer);
+        levelNameLoaded = editorNameBuffer;
+        Restart(levelNameLoaded);
         bSceneLoaded = true;
         bNewScene = false;
     }

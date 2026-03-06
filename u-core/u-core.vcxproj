@@ -148,6 +148,7 @@
     <ClCompile Include="src\components\CPath.cpp" />
     <ClCompile Include="src\components\CPlayer.cpp" />
     <ClCompile Include="src\components\CSprite.cpp" />
+    <ClCompile Include="src\components\CStaticDraw.cpp" />
     <ClCompile Include="src\components\CTarget.cpp" />
     <ClCompile Include="src\components\UComponent.cpp" />
     <ClCompile Include="src\components\CTransform.cpp" />
@@ -158,9 +159,11 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\systems\SDrawSystem.cpp" />
     <ClCompile Include="src\systems\SPathfinderSystem.cpp" />
+    <ClCompile Include="src\systems\SStaticDrawSystem.cpp" />
     <ClCompile Include="src\systems\USystem.cpp" />
     <ClCompile Include="src\UAsset.cpp" />
     <ClCompile Include="src\UEngine.cpp" />
+    <ClCompile Include="src\UGameScene.cpp" />
     <ClCompile Include="src\UScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -289,6 +292,7 @@
     <ClInclude Include="src\components\CRect.h" />
     <ClInclude Include="src\components\CSpeed.h" />
     <ClInclude Include="src\components\CSprite.h" />
+    <ClInclude Include="src\components\CStaticDraw.h" />
     <ClInclude Include="src\components\CTarget.h" />
     <ClInclude Include="src\components\UComponent.h" />
     <ClInclude Include="src\components\CTransform.h" />
@@ -298,11 +302,13 @@
     <ClInclude Include="src\math\UFloat2D.h" />
     <ClInclude Include="src\systems\SDrawSystem.h" />
     <ClInclude Include="src\systems\SPathfinderSystem.h" />
+    <ClInclude Include="src\systems\SStaticDrawSystem.h" />
     <ClInclude Include="src\systems\USystem.h" />
     <ClInclude Include="src\UAsset.h" />
     <ClInclude Include="src\UEditorScene.h" />
     <ClInclude Include="src\UEngine.h" />
     <ClInclude Include="src\UEntityManager.h" />
+    <ClInclude Include="src\UGameScene.h" />
     <ClInclude Include="src\UScene.h" />
   </ItemGroup>
   <ItemGroup>
