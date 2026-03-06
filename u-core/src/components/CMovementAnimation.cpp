@@ -73,7 +73,7 @@ namespace uei
 
 				if (!(animations[key] == EMPTY))
 				{
-					uei::AnimationAsset animationAsset = assets->Animation(animations[key]);
+					uei::AnimationAsset animationAsset = assets->GetAnimation(animations[key]);
 
 					currentAnimationDeltaTime += ImGui::GetIO().DeltaTime; // ToDo delta time
 					int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.speed) % animationAsset.frame;

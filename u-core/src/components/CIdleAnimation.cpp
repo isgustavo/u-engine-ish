@@ -52,7 +52,7 @@ namespace uei
 
 		if (!idleAnimation.empty())
 		{
-			uei::AnimationAsset animationAsset = assets->Animation(idleAnimation);
+			uei::AnimationAsset animationAsset = assets->GetAnimation(idleAnimation);
 
 			currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
 			int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.speed) % animationAsset.frame;

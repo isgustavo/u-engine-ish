@@ -9,10 +9,8 @@
 
 namespace uei
 {
-	UAsset::UAsset()
-	{
-		
-	}
+	UAsset::UAsset() { }
+
 	void UAsset::Load(UEngine& engine)
 	{
 		textures.clear();
@@ -139,6 +137,7 @@ namespace uei
 			out.close();
 		}
 	}
+	
 	void UAsset::LoadTextures()
 	{
 		for (const auto& t : std::filesystem::directory_iterator("Assets/Textures"))
@@ -184,6 +183,7 @@ namespace uei
 			fonts.erase(name);
 		}
 	}
+	
 	const sf::Texture& UAsset::GetTexture(const std::string& textureName) const
 	{
 		auto it = textures.find(textureName);
@@ -194,7 +194,7 @@ namespace uei
 		auto it = spriteAssets.find(spriteName);
 		return it->second;
 	}
-	const uei::AnimationAsset& UAsset::Animation(const std::string& animationName) const
+	const uei::AnimationAsset& UAsset::GetAnimation(const std::string& animationName) const
 	{
 		auto it = animations.find(animationName);
 		return it->second;
@@ -204,6 +204,7 @@ namespace uei
 		auto it = prefabs.find(prefabName);
 		return *it->second;
 	}
+	
 	void UAsset::RemovePrefab(const std::string& prefabName)
 	{
 		auto it = prefabs.find(prefabName);

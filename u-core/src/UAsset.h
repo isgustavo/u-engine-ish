@@ -46,7 +46,7 @@ namespace uei
 		const std::unordered_map<std::string, uei::SpriteAsset>& AllSpriteAssets() { return spriteAssets; }
 		const std::vector<std::string>& SpriteNames() const { return spriteNames; };
 
-		const uei::AnimationAsset& Animation(const std::string& animationName) const;
+		const uei::AnimationAsset& GetAnimation(const std::string& animationName) const;
 		const std::unordered_map<std::string, uei::AnimationAsset>& Animations() { return animations; }
 		const std::vector<std::string>& AnimationNames() const { return animationNames; }
 
