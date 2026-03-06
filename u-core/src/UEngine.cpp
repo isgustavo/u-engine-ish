@@ -1,6 +1,7 @@
 #include "UEngine.h"
 #include "UScene.h"
 #include "editor/UEditorScene.h"
+#include "UGameScene.h"
 #include "editor/UEditor.h"
 #include "components/CTransform.h"
 #include "components/CPath.h"
@@ -11,6 +12,7 @@
 #include "components/CMovement.h"
 #include "components/CMovementAnimation.h"
 #include "components/CObstacle.h"
+#include "components/CStaticDraw.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -27,19 +29,21 @@
 #include <sstream>
 #include <iostream>
 
+#include<windows.h>
+#include<algorithm>
 
 namespace uei
 {
-    UEngine::UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, bool showEditor) :
+    UEngine::UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, const std::string& inStartLevelName) :
         screenSize(sf::Vector2f((float)inWidth, (float)inHeight)), 
         renderWindow(sf::VideoMode({ inWidth, inHeight }), windowName), 
-        bShowEditor(showEditor)
+        fixedDeltaTime(1000.f / framerateLimit),
+        startLevelName(inStartLevelName)
     {
         //assets = std::make_unique<UAsset>();
         //assets->LoadFromFile(assetFilePath);
         assets = new UAsset();
-
-        renderWindow.setFramerateLimit(framerateLimit);
+        //renderWindow.setFramerateLimit(framerateLimit);
         ImGui::SFML::Init(renderWindow);
 
         //gridView = sf::View(sf::FloatRect({ 0.f, 0.f }, { 512.0f, 512.0f}));
@@ -75,8 +79,6 @@ namespace uei
         //bShowGrid = true;
         //bShowNewPrefab = false;
         //font = sf::Font(fontPath); 
-
-
     }
 
     UEngine::~UEngine()
@@ -101,22 +103,21 @@ namespace uei
     void UEngine::Start()
     {
         assets->Load(*this);
-        if (bShowEditor)
-        {
-            scenes.clear();
-            currentScene = AddScene<uei::UEditorScene>();
-            currentScene->Start(" ");
-        }
+        scenes.clear();
+        if(startLevelName == EMPTY)
+            currentScene = AddScene<UEditorScene>(startLevelName);
+        else 
+            currentScene = AddScene<UGameScene>(startLevelName);
     }
   
     void UEngine::Update()
     {
-        sf::CircleShape shape(100.f);
-        shape.setFillColor(sf::Color::Green);
-
-        sf::Clock deltaClock;
+        sf::Clock clock;
+        float startTime = 0.0f;
         while (renderWindow.isOpen())
         {
+            sf::Time time = clock.restart();
+            float startTime = time.asSeconds();
             while (const auto event = renderWindow.pollEvent())
             {
                 ImGui::SFML::ProcessEvent(renderWindow, *event);
@@ -144,10 +145,21 @@ namespace uei
                 }
             }
 
-            ImGui::SFML::Update(renderWindow, deltaClock.restart());
+            ImGui::SFML::Update(renderWindow, time);
             
+            if (currentScene != nullptr && !currentScene->bIsStarted)
+                currentScene->Start();
+
             if(currentScene != nullptr)
-                currentScene->Update();
+                currentScene->Update(fixedDeltaTime);
+
+            //if (currentScene != nullptr)
+            //{
+            //    while (deltaTimeAccumulator >= fixedDeltaTime)
+            //    {
+            //        currentScene->Update(fixedDeltaTime);
+            //    }
+            //}
 
             renderWindow.clear();
             
@@ -156,9 +168,18 @@ namespace uei
 
             ImGui::SFML::Render(renderWindow);
             renderWindow.display();
+
+            time = clock.restart();
+            float elapsed = time.asSeconds() - startTime;
+            Sleep(std::max(0.f, fixedDeltaTime - elapsed));
         }
 
         ImGui::SFML::Shutdown();
+    }
+
+    void UEngine::AddGameScene(std::string levelName)
+    {
+        currentScene = AddScene<UGameScene>(levelName);
     }
 
     void UEngine::Clear()
@@ -172,6 +193,7 @@ namespace uei
 //REGISTER_COMPONENT(CTarget);
 //REGISTER_COMPONENT(CAnimation);
 REGISTER_COMPONENT(CObstacle);
+REGISTER_COMPONENT(CStaticDraw);
 REGISTER_COMPONENT(CIdleAnimation);
 REGISTER_COMPONENT(CMovement);
 REGISTER_COMPONENT(CMovementAnimation);

@@ -22,23 +22,17 @@ inline const std::string ANIMATION = "Animation";
 inline const std::string COMPONENT = "Component";
 inline const std::string ENTITY = "Entity";
 inline const std::string EMPTY = "Empty";
-inline float DELTA_TIME = 0.0f;
 
 namespace uei
 {
 	class UEngine
 	{
 	public:
-		UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, bool showEditor = true);
+		UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, 
+			const std::string& inStartLevelName = EMPTY);
 		~UEngine();
 
-		template<typename T>
-		T* AddScene()
-		{
-			T* t = new T(*this);
-			scenes.push_back(t);
-			return t;
-		}
+		void AddGameScene(std::string levelName);
 
 		UAsset* Assets() { return assets; }
 		UScene* CurrentScene() { return currentScene; }
@@ -49,12 +43,23 @@ namespace uei
 		void Start();
 		void Update();
 
+		template<typename T>
+		T* AddScene(std::string levelName)
+		{
+			T* t = new T(*this, levelName);
+			scenes.push_back(t);
+			return t;
+		}
+
 	private:
 
 		sf::Vector2f screenSize;
 		bool bShowEditor;
 
 		sf::Font font;
+
+		const std::string startLevelName;
+		const float fixedDeltaTime;
 
 		sf::RenderWindow renderWindow;
 
