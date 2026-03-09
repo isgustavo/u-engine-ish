@@ -6,15 +6,13 @@
 
 namespace uei
 {
-	CIdleAnimation::CIdleAnimation() : UComponent()
+	CIdleAnimation::CIdleAnimation() : UComponent(), animationAsset(), currentAnimationDeltaTime(0.f)
 	{
-		currentAnimationDeltaTime = 0.f;
 	}
 
-	CIdleAnimation::CIdleAnimation(AnimationAsset* inAnimationAsset) : UComponent(),
-		animationAsset(inAnimationAsset), currentAnimationDeltaTime(0.f)
+	CIdleAnimation::CIdleAnimation(AnimationAsset* inAnimationAsset) : CIdleAnimation()
 	{
-
+		animationAsset = inAnimationAsset;
 	}
 
 	CIdleAnimation::~CIdleAnimation()
@@ -59,7 +57,6 @@ namespace uei
 					if (ImGui::Selectable(allAnimationNames[i].c_str()))
 					{
 						animationAsset = new AnimationAsset(assets->GetAnimation(allAnimationNames[i]));
-						//idleAnimationName = allAnimationNames[i];
 					}
 				}
 				ImGui::EndCombo();
@@ -69,9 +66,7 @@ namespace uei
 
 		if (animationAsset != nullptr)
 		{
-			//uei::AnimationAsset animationAsset = assets->GetAnimation(idleAnimationName);
-
-			currentAnimationDeltaTime += engine.DeltaTime();// ImGui::GetIO().DeltaTime;
+			currentAnimationDeltaTime += engine.DeltaTime();
 			int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset->Speed) % animationAsset->Frame;
 			int spriteX = animationAsset->X + (currentAnimationFrame * animationAsset->Width);
 

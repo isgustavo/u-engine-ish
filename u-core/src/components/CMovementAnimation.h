@@ -20,27 +20,23 @@ namespace uei
 			return new CMovementAnimation(animations);
 		}
 
-		std::vector<std::string>& AllLocomotionTypes()
-		{
-			if (allLocomotionTypesName.size() == 0)
-			{
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::LEFT));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::RIGHT));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_LEFT));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_LEFT));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_RIGHT));
-				allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_RIGHT));
-			}
-			return allLocomotionTypesName;
-		}
+		//std::vector<std::string>& AllLocomotionTypes()
+		//{
+		//	if (allLocomotionTypesName.size() == 0)
+		//	{
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::LEFT));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::RIGHT));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_LEFT));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_LEFT));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_RIGHT));
+		//		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_RIGHT));
+		//	}
+		//	return allLocomotionTypesName;
+		//}
 
-		std::string GetAnimation(EMovement movement)
-		{
-			auto it = animations.find(uei::MovementToString(movement));
-			return it != animations.end() ? it->second : " ";
-		}
+		std::string GetAnimation(EMovement movement);
 
 		inline std::string ComponentName() const override { return "CMovementAnimation"; }
 

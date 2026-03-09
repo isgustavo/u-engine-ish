@@ -14,10 +14,22 @@ namespace uei
 {
 	CMovementAnimation::CMovementAnimation() : UComponent(), animations() 
 	{
-		AllLocomotionTypes();
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::LEFT));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::RIGHT));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_LEFT));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_LEFT));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_RIGHT));
+		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_RIGHT));
+
+		for (auto& key : allLocomotionTypesName)
+		{
+			animations[key] = EMPTY;
+		}
 	}
 
-	CMovementAnimation::CMovementAnimation(const std::unordered_map<std::string, std::string>& inAnimations) : UComponent()
+	CMovementAnimation::CMovementAnimation(const std::unordered_map<std::string, std::string>& inAnimations) : CMovementAnimation()
 	{
 		for (auto& [key, value] : inAnimations)
 		{
@@ -38,7 +50,7 @@ namespace uei
 		{
 			int animationIndex = 0;
 			//for (auto& [key, value] : animations)
-			for (const std::string& key : AllLocomotionTypes())
+			for (const std::string& key : allLocomotionTypesName)
 			{
 				auto animationName = animations.find(key);
 				std::string value = " ";
@@ -125,19 +137,25 @@ namespace uei
 		entity.SetRequiredByOtherComponent<CMovement>(false);
 	}
 
+	std::string CMovementAnimation::GetAnimation(EMovement movement)
+	{
+		auto it = animations.find(uei::MovementToString(movement));
+		return it != animations.end() ? it->second : EMPTY;
+	}
+
 	void CMovementAnimation::LoadComponent(UEngine& engine, std::istream& in)
 	{
 		std::string a0, a1, a2, a3, a4, a5, a6, a7;
 		in >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7;
 
-		animations[AllLocomotionTypes()[0]] = a0;
-		animations[AllLocomotionTypes()[1]] = a1;
-		animations[AllLocomotionTypes()[2]] = a2;
-		animations[AllLocomotionTypes()[3]] = a3;
-		animations[AllLocomotionTypes()[4]] = a4;
-		animations[AllLocomotionTypes()[5]] = a5;
-		animations[AllLocomotionTypes()[6]] = a6;
-		animations[AllLocomotionTypes()[7]] = a7;
+		animations[allLocomotionTypesName[0]] = a0;
+		animations[allLocomotionTypesName[1]] = a1;
+		animations[allLocomotionTypesName[2]] = a2;
+		animations[allLocomotionTypesName[3]] = a3;
+		animations[allLocomotionTypesName[4]] = a4;
+		animations[allLocomotionTypesName[5]] = a5;
+		animations[allLocomotionTypesName[6]] = a6;
+		animations[allLocomotionTypesName[7]] = a7;
 	}
 
 	std::string CMovementAnimation::Save() const
