@@ -7,7 +7,7 @@ namespace uei
 {
 	CMovement::CMovement() : UComponent(), movementIndex(0)
 	{
-		std::cout << "CMovement" << std::endl;
+		currentMovement = EMovement::NONE;
 	}
 
 	CMovement::~CMovement()
@@ -47,6 +47,7 @@ namespace uei
 	void CMovement::LoadComponent(UEngine& engine, std::istream& in)
 	{
 		in >> movementIndex;
+		gridMovement = StringToGrid(AllMovementTypes()[movementIndex]);
 	}
 	
 	std::string CMovement::Save() const

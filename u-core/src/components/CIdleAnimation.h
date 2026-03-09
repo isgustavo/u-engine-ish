@@ -1,5 +1,6 @@
 #pragma once
 #include "UComponent.h"
+#include "UAsset.h"
 
 namespace uei 
 {
@@ -9,11 +10,13 @@ namespace uei
 		CIdleAnimation();
 		~CIdleAnimation();
 
-		std::string IdleAnimation() { return idleAnimation; }
+		//std::string GetIdleAnimationName() { return idleAnimationName; }
+		AnimationAsset* GetAnimationAsset() { return animationAsset; }
+		uei::SpriteAsset GetCurrentAnimataionFrame(float deltaTime);
 
 		UComponent* Clone() const override
 		{
-			return new CIdleAnimation(idleAnimation);
+			return new CIdleAnimation(animationAsset);
 		}
 
 		inline std::string ComponentName() const override { return "CIdleAnimation"; }
@@ -26,14 +29,14 @@ namespace uei
 		int GetEditorSize(UEngine& engine) const override;
 
 	private:
-		CIdleAnimation(std::string idleAnimation);
+		CIdleAnimation(AnimationAsset* inAnimationAsset);
 
-		std::string idleAnimation;
+		AnimationAsset* animationAsset;
+		//std::string idleAnimationName;
 
 		float currentAnimationDeltaTime = 0.f;
 
 		virtual void OnComponentAdd(UEntity& entity) override;
 		virtual void OnComponentRemove(UEntity& entity) override;
 	};
-
 }

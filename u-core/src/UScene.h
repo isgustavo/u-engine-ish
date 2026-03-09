@@ -29,10 +29,17 @@ namespace uei
 		template<typename T, typename... Args>
 		void AddSystem(Args&&... args)
 		{
-			static_assert(std::is_base_of_v<uei::USystem, T>,
-				"T must derive from USystem");
+			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
 
 			systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+		}
+
+		template<typename T, typename... Args>
+		void AddDrawSystem(Args&&... args)
+		{
+			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
+
+			drawSystems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
 		}
 		
 		std::vector<std::unique_ptr<uei::UEntity>>& Entities() { return entities; }
@@ -57,6 +64,7 @@ namespace uei
 
 		std::vector<std::unique_ptr<uei::UEntity>> entities;
 		std::vector<std::unique_ptr<uei::USystem>> systems;
+		std::vector<std::unique_ptr<uei::USystem>> drawSystems;
 		std::vector<int> navGrid;
 
 		void AddEntity(UEntity* entity, sf::Vector2f position);

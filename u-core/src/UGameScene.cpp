@@ -1,6 +1,8 @@
 #include "UGameScene.h"
 #include <systems/SDrawSystem.h>
 #include <systems/SStaticDrawSystem.h>
+#include <systems/SAnimationSystem.h>
+#include <systems/SMovementSystem.h>
 
 namespace uei 
 {
@@ -12,8 +14,10 @@ namespace uei
     }
     void UGameScene::OnStart()
     {
-        AddSystem<SStaticDrawSystem>();
-        AddSystem<SDrawSystem>(false);
+        AddSystem<SMovementSystem>();
+        AddSystem<SAnimationSystem>();
+        AddDrawSystem<SStaticDrawSystem>();
+        AddDrawSystem<SDrawSystem>(false);
     }
     void UGameScene::OnUpdate(float deltaTime)
     {

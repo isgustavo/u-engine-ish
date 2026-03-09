@@ -157,7 +157,9 @@
     <ClCompile Include="src\entities\UEntity.cpp" />
     <ClCompile Include="src\math\UFloat2D.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\systems\SAnimationSystem.cpp" />
     <ClCompile Include="src\systems\SDrawSystem.cpp" />
+    <ClCompile Include="src\systems\SMovementSystem.cpp" />
     <ClCompile Include="src\systems\SPathfinderSystem.cpp" />
     <ClCompile Include="src\systems\SStaticDrawSystem.cpp" />
     <ClCompile Include="src\systems\USystem.cpp" />
@@ -300,7 +302,9 @@
     <ClInclude Include="src\editor\UEditorScene.h" />
     <ClInclude Include="src\entities\UEntity.h" />
     <ClInclude Include="src\math\UFloat2D.h" />
+    <ClInclude Include="src\systems\SAnimationSystem.h" />
     <ClInclude Include="src\systems\SDrawSystem.h" />
+    <ClInclude Include="src\systems\SMovementSystem.h" />
     <ClInclude Include="src\systems\SPathfinderSystem.h" />
     <ClInclude Include="src\systems\SStaticDrawSystem.h" />
     <ClInclude Include="src\systems\USystem.h" />

@@ -103,18 +103,23 @@ namespace uei
 		newPrefab = nullptr;
 	}
 	
-	void uei::UScene::Update(float deltaTime)
+	void uei::UScene::Update()
 	{
 		AddNewEntities();
 		RemoveInactiveEntities();
 		if (bIsNavGridDirty)
 			UpdateNavGrid();
-		OnUpdate(deltaTime);
+
+		for (auto& s : systems)
+		{
+			s.get()->Update(engine, entities);
+		}
+		OnUpdate(engine.DeltaTime());
 	}
 
 	void UScene::Draw()
 	{
-		for (auto& s : systems)
+		for (auto& s : drawSystems)
 		{
 			s.get()->Update(engine, entities);
 		}
@@ -131,7 +136,7 @@ namespace uei
 	{
 		AddEntity(entity);
 		CTransform* transform = entity->GetComponent<CTransform>();
-		transform->SetPosition(position);
+		transform->InitPosition(position);
 		//if (entity->HasComponent<CSprite>())
 		//{
 		//	CSprite* sprite = entity->GetComponent<CSprite>();

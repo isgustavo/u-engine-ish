@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <string>
-#include <UAsset.h>
+#include "UAsset.h"
 
 namespace uei
 {
@@ -17,21 +17,27 @@ namespace uei
 		~CSprite();
 
 		//sf::Sprite* Sprite() { return sprite; }
-		std::string SpriteName() { return spriteName; }
-		bool FlipX() { return bFlipX; }
-		bool FlipY() { return bFlipY; }
+		//std::string SpriteName() { return spriteName; }
+		void SetSpriteAsset(SpriteAsset* inSpriteAsset);
+		SpriteAsset* GetSpriteAsset() { return spriteAsset; }
+		bool FlipX() const { return bFlipX; }
+		bool FlipY() const { return bFlipY; }
 
 		//void SetScale(int gridSize);
 
 		UComponent* Clone() const override
 		{
-			CSprite* s = nullptr;
-			if (spriteName != EMPTY)
-			{
-				s = new CSprite(spriteName, bFlipX, bFlipY);
+			//CSprite* s = nullptr;
+			//if (spriteName != EMPTY)
+			//{
+				//s = new CSprite(spriteAsset, bFlipX, bFlipY);
 				//s->sprite = new sf::Sprite(*sprite);
-			}
-			return s;
+			//}
+			//return s;
+			if(spriteAsset != nullptr)
+				return new CSprite(spriteAsset, bFlipX, bFlipY);
+			else 
+				return new CSprite(bFlipX, bFlipY);
 		}
 
 		inline std::string ComponentName() const override { return "CSprite"; }
@@ -44,9 +50,10 @@ namespace uei
 		int GetEditorSize(UEngine& engine) const override;
 
 	private:
-		CSprite(std::string inSpriteName, bool inFlipX, bool inFlipY);
+		CSprite(const SpriteAsset* inSpriteAsset, bool inFlipX, bool inFlipY);
+		CSprite(bool inFlipX, bool inFlipY);
 
-		std::string spriteName;
+		SpriteAsset* spriteAsset;
 		bool bFlipX, bFlipY;
 		//sf::Sprite* sprite;
 

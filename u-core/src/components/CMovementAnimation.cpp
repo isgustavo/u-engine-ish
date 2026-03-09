@@ -12,7 +12,10 @@
 
 namespace uei
 {
-	CMovementAnimation::CMovementAnimation() : UComponent(), animations() { }
+	CMovementAnimation::CMovementAnimation() : UComponent(), animations() 
+	{
+		AllLocomotionTypes();
+	}
 
 	CMovementAnimation::CMovementAnimation(const std::unordered_map<std::string, std::string>& inAnimations) : UComponent()
 	{
@@ -73,14 +76,14 @@ namespace uei
 
 				if (!(animations[key] == EMPTY))
 				{
-					uei::AnimationAsset animationAsset = assets->GetAnimation(animations[key]);
+					AnimationAsset animationAsset = assets->GetAnimation(animations[key]);
 
-					currentAnimationDeltaTime += ImGui::GetIO().DeltaTime; // ToDo delta time
-					int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.speed) % animationAsset.frame;
-					int spriteX = animationAsset.x + (currentAnimationFrame * animationAsset.width);
+					currentAnimationDeltaTime += engine.DeltaTime();// ImGui::GetIO().DeltaTime; // ToDo delta time
+					int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.Speed) % animationAsset.Frame;
+					int spriteX = animationAsset.X + (currentAnimationFrame * animationAsset.Width);
 
-					sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(animationAsset.textureName),
-						sf::IntRect({ spriteX, animationAsset.y }, { animationAsset.width, animationAsset.height }));
+					sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(animationAsset.TextureName),
+						sf::IntRect({ spriteX, animationAsset.Y }, { animationAsset.Width, animationAsset.Height }));
 
 					ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
 					sf::Vector2u size = sprite->getTexture().getSize();
@@ -89,17 +92,15 @@ namespace uei
 
 					ImVec2 uv0(
 						(float)spriteX / size.x,
-						(float)animationAsset.y / size.y);
+						(float)animationAsset.Y / size.y);
 
 					ImVec2 uv1(
-						(float)(spriteX + animationAsset.width) / size.x,
-						(float)(animationAsset.y + animationAsset.height) / size.y);
+						(float)(spriteX + animationAsset.Width) / size.x,
+						(float)(animationAsset.Y + animationAsset.Height) / size.y);
 
 					ImGui::SameLine();
 					ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
 				}
-
-
 				//ImGui::EndChild();
 			}
 		}
@@ -142,7 +143,6 @@ namespace uei
 	std::string CMovementAnimation::Save() const
 	{
 		std::stringstream ss;
-
 		for (const std::string& key : allLocomotionTypesName)
 		{
 			auto it = animations.find(key);

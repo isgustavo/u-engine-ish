@@ -12,9 +12,9 @@ namespace uei
         bCanRemove = false;
     }
 
-    CTransform::CTransform(const sf::Vector2f& inPosition/*, sf::Vector2f& inInitialVelocity*/) : UComponent(),
-        position(inPosition), positionLastUpdate(position), bUpdate(true)/*, velocity(inInitialVelocity)*/
+    CTransform::CTransform(const sf::Vector2f& inPosition/*, sf::Vector2f& inInitialVelocity*/) : UComponent(), bUpdate(true)/*, velocity(inInitialVelocity)*/
     {
+        InitPosition(inPosition);
         bCanRemove = false;
     }
 
@@ -26,11 +26,25 @@ namespace uei
     {
         return position;
     }
+    sf::Vector2f& CTransform::PositionLastUpdate()
+    {
+        return positionLastUpdate;
+    }
+    void CTransform::InitPosition(const sf::Vector2f& inPosition)
+    {
+        positionLastUpdate = inPosition;
+        position = inPosition;
+    }
     void CTransform::SetPosition(const sf::Vector2f& inPosition)
     {
         positionLastUpdate = position;
         position = inPosition;
         bUpdate = positionLastUpdate == inPosition;
+    }
+    bool CTransform::IsMoving(const float threshould)
+    {
+        sf::Vector2f delta = position - positionLastUpdate;
+        return (delta.x * delta.x + delta.y * delta.y) > threshould * threshould;
     }
     /*void CTransform::SetVelocity(const sf::Vector2f& inVelocity)
     {
@@ -80,7 +94,8 @@ namespace uei
     {
         float x, y;
         in >> x >> y;
-        SetPosition(sf::Vector2f(x, y));
+        position = sf::Vector2f(x, y);
+        positionLastUpdate = sf::Vector2f(x, y);
     }
     std::string CTransform::Save() const
     {

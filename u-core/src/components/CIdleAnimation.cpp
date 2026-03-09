@@ -1,21 +1,36 @@
 #include "components/CIdleAnimation.h"
 #include "components/UComponent.h"
 #include "UEngine.h"
+#include "UAsset.h"
 #include "CSprite.h"
 
 namespace uei
 {
 	CIdleAnimation::CIdleAnimation() : UComponent()
 	{
+		currentAnimationDeltaTime = 0.f;
 	}
 
-	CIdleAnimation::CIdleAnimation(std::string inIdleAnimation) : UComponent()
+	CIdleAnimation::CIdleAnimation(AnimationAsset* inAnimationAsset) : UComponent(),
+		animationAsset(inAnimationAsset), currentAnimationDeltaTime(0.f)
 	{
-		idleAnimation = inIdleAnimation;
+
 	}
 
 	CIdleAnimation::~CIdleAnimation()
 	{
+		delete animationAsset;
+		animationAsset = nullptr;
+	}
+
+	SpriteAsset CIdleAnimation::GetCurrentAnimataionFrame(float deltaTime)
+	{
+		currentAnimationDeltaTime += deltaTime;
+		int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset->Speed) % animationAsset->Frame;
+
+		return SpriteAsset(EMPTY, animationAsset->TextureName, 
+			animationAsset->X + (currentAnimationFrame * animationAsset->Width), animationAsset->Y, 
+			animationAsset->Width, animationAsset->Height);
 	}
 
 	void CIdleAnimation::OnShowEditor(UEngine& engine)
@@ -31,18 +46,20 @@ namespace uei
 			ImGui::PushID(++animationIndex);
 			if (ImGui::Button("Clear"))
 			{
-				idleAnimation = "";
+				animationAsset = nullptr;
+				//idleAnimationName = "";
 			}
 			ImGui::PopID();
 			ImGui::PushItemWidth(260);
 			std::string id = "##AnimationCombo_" + std::to_string(++animationIndex);
-			if (ImGui::BeginCombo(id.c_str(), idleAnimation.c_str()))
+			if (ImGui::BeginCombo(id.c_str(), (animationAsset == nullptr) ? " " : animationAsset->AssetName.c_str()))
 			{
 				for (int i = 0; i < allAnimationNames.size(); ++i)
 				{
 					if (ImGui::Selectable(allAnimationNames[i].c_str()))
 					{
-						idleAnimation = allAnimationNames[i];
+						animationAsset = new AnimationAsset(assets->GetAnimation(allAnimationNames[i]));
+						//idleAnimationName = allAnimationNames[i];
 					}
 				}
 				ImGui::EndCombo();
@@ -50,29 +67,26 @@ namespace uei
 			ImGui::PopItemWidth();
 		}
 
-		if (!idleAnimation.empty())
+		if (animationAsset != nullptr)
 		{
-			uei::AnimationAsset animationAsset = assets->GetAnimation(idleAnimation);
+			//uei::AnimationAsset animationAsset = assets->GetAnimation(idleAnimationName);
 
-			currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
-			int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.speed) % animationAsset.frame;
-			int spriteX = animationAsset.x + (currentAnimationFrame * animationAsset.width);
+			currentAnimationDeltaTime += engine.DeltaTime();// ImGui::GetIO().DeltaTime;
+			int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset->Speed) % animationAsset->Frame;
+			int spriteX = animationAsset->X + (currentAnimationFrame * animationAsset->Width);
 
-			sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(animationAsset.textureName),
-				sf::IntRect({ spriteX, animationAsset.y }, { animationAsset.width, animationAsset.height }));
+			sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(animationAsset->TextureName),
+				sf::IntRect({ spriteX, animationAsset->Y }, { animationAsset->Width, animationAsset->Height }));
 
 			ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
 			sf::Vector2u size = sprite->getTexture().getSize();
 
 			//ImGui::Spacing();
 
-			ImVec2 uv0(
-				(float)spriteX / size.x,
-				(float)animationAsset.y / size.y);
+			ImVec2 uv0((float)spriteX / size.x, (float)animationAsset->Y / size.y);
 
-			ImVec2 uv1(
-				(float)(spriteX + animationAsset.width) / size.x,
-				(float)(animationAsset.y + animationAsset.height) / size.y);
+			ImVec2 uv1((float)(spriteX + animationAsset->Width) / size.x,
+				(float)(animationAsset->Y + animationAsset->Height) / size.y);
 
 			ImGui::SameLine();
 			ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
@@ -96,11 +110,18 @@ namespace uei
 
 	void CIdleAnimation::LoadComponent(UEngine& engine, std::istream& in)
 	{
-		in >> idleAnimation;
+		std::string animationName;
+
+		in >> animationName;
+
+		if (animationName != EMPTY)
+		{
+			animationAsset = new AnimationAsset(engine.Assets()->GetAnimation(animationName));
+		}
 	}
 
 	std::string CIdleAnimation::Save() const
 	{
-		return idleAnimation.empty() ? EMPTY : idleAnimation;
+		return animationAsset == nullptr ? EMPTY : animationAsset->AssetName;
 	}
 }

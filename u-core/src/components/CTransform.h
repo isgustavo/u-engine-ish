@@ -12,7 +12,10 @@ namespace uei
 		CTransform(const sf::Vector2f& inPosition/*, sf::Vector2f& inInitialVelocity*/);
 
 		sf::Vector2f& Position();
+		sf::Vector2f& PositionLastUpdate();
+		void InitPosition(const sf::Vector2f& inPosition);
 		void SetPosition(const sf::Vector2f& inPosition);
+		bool IsMoving(const float threshold = 0.001f);
 		//void SetVelocity(const sf::Vector2f& inVelocity);
 		bool ShouldUpdate() const;
 
