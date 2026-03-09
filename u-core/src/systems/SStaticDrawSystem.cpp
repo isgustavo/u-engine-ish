@@ -40,8 +40,7 @@ namespace uei
 			for (int i = 0; i < transforms.size(); i++)
 			{
 				const sf::Vector2f p = transforms[i]->Position();
-				uei::SpriteAsset spriteAsset = engine.Assets()->GetSpriteAsset(sprites[i]->SpriteName());
-
+				
 				float left = sprites[i]->FlipX() ? p.x - tileSize : p.x;
 				float right = sprites[i]->FlipX() ? p.x : p.x + tileSize;
 
@@ -56,24 +55,29 @@ namespace uei
 				vertexArray[(i * 6) + 4].position = sf::Vector2f(right, top);
 				vertexArray[(i * 6) + 5].position = sf::Vector2f(right, bottom);
 
-				left = spriteAsset.x;
-				right = spriteAsset.x + spriteAsset.width;
-				top = spriteAsset.y;
-				bottom = spriteAsset.y + spriteAsset.height;
+				if (sprites[i]->GetSpriteAsset() != nullptr)
+				{
+					const SpriteAsset* spriteAsset = sprites[i]->GetSpriteAsset();// engine.Assets()->GetSpriteAsset(sprites[i]->SpriteName());
 
-				if (sprites[i]->FlipX())
-					std::swap(left, right);
+					left = spriteAsset->X;
+					right = spriteAsset->X + spriteAsset->Width;
+					top = spriteAsset->Y;
+					bottom = spriteAsset->Y + spriteAsset->Height;
 
-				if (sprites[i]->FlipY())
-					std::swap(top, bottom);
+					if (sprites[i]->FlipX())
+						std::swap(left, right);
 
-				vertexArray[(i * 6) + 0].texCoords = { left,  top };
-				vertexArray[(i * 6) + 1].texCoords = { right, top };
-				vertexArray[(i * 6) + 2].texCoords = { left,  bottom };
+					if (sprites[i]->FlipY())
+						std::swap(top, bottom);
 
-				vertexArray[(i * 6) + 3].texCoords = { left,  bottom };
-				vertexArray[(i * 6) + 4].texCoords = { right, top };
-				vertexArray[(i * 6) + 5].texCoords = { right, bottom };
+					vertexArray[(i * 6) + 0].texCoords = { left,  top };
+					vertexArray[(i * 6) + 1].texCoords = { right, top };
+					vertexArray[(i * 6) + 2].texCoords = { left,  bottom };
+
+					vertexArray[(i * 6) + 3].texCoords = { left,  bottom };
+					vertexArray[(i * 6) + 4].texCoords = { right, top };
+					vertexArray[(i * 6) + 5].texCoords = { right, bottom };
+				}
 			}
 
 			bIsDirty = false;
