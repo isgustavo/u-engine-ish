@@ -151,7 +151,7 @@ namespace uei
                 currentScene->Start();
 
             if(currentScene != nullptr)
-                currentScene->Update(fixedDeltaTime);
+                currentScene->Update();
 
             //if (currentScene != nullptr)
             //{
@@ -171,7 +171,7 @@ namespace uei
 
             time = clock.restart();
             float elapsed = time.asSeconds() - startTime;
-            Sleep(std::max(0.f, fixedDeltaTime - elapsed));
+            Sleep(std::max(0.f, DeltaTime() - elapsed));
         }
 
         ImGui::SFML::Shutdown();

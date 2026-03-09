@@ -8,29 +8,101 @@
 
 namespace uei
 {
+	enum EMovement
+	{
+		NONE,
+		UP,
+		LEFT,
+		DOWN,
+		RIGHT,
+		UP_LEFT,
+		DOWN_LEFT,
+		DOWN_RIGHT,
+		UP_RIGHT
+	};
+
+	inline std::string MovementToString(EMovement movement) 
+	{
+		switch (movement)
+		{
+		case EMovement::UP:
+			return "UP";
+		case EMovement::LEFT:
+			return "LEFT";
+		case EMovement::DOWN:
+			return "DOWN";
+		case EMovement::RIGHT:
+			return "RIGHT";
+		case EMovement::UP_LEFT:
+			return "UP_LEFT";
+		case EMovement::DOWN_LEFT:
+			return "DOWN_LEFT";
+		case EMovement::DOWN_RIGHT:
+			return "DOWN_RIGHT";
+		case EMovement::UP_RIGHT:
+			return "UP_RIGHT";
+		default:
+			return "NONE";
+		}
+	}
+
+	inline EMovement StringToMovement(std::string movement) 
+	{
+		if (movement == "UP")
+			return EMovement::UP;
+		if (movement == "LEFT")
+			return EMovement::DOWN;
+		if (movement == "DOWN")
+			return EMovement::UP;
+		if (movement == "RIGHT")
+			return EMovement::RIGHT;
+		if (movement == "UP_LEFT")
+			return EMovement::UP_LEFT;
+		if (movement == "DOWN_LEFT")
+			return EMovement::DOWN_LEFT;
+		if (movement == "DOWN_RIGHT")
+			return EMovement::DOWN_RIGHT;
+		if (movement == "UP_RIGHT")
+			return EMovement::UP_RIGHT;
+		return EMovement::NONE;
+	}
+
 	class SpriteAsset
 	{
 	public:
 		SpriteAsset() = default;
-		SpriteAsset(std::string inName, std::string inTextureName, int inX, int inY, int inWidth, int inHeight) :
-			name(inName), textureName(inTextureName), x(inX), y(inY), width(inWidth), height(inHeight)
+		SpriteAsset(std::string assetName, std::string textureName, int x, int y, int width, int height) :
+			AssetName(assetName), TextureName(textureName), X(x), Y(y), Width(width), Height(height)
+		{
+		}
+		SpriteAsset(const SpriteAsset* spriteAsset) :
+			AssetName(spriteAsset->AssetName), TextureName(spriteAsset->TextureName), X(spriteAsset->X), Y(spriteAsset->Y), 
+			Width(spriteAsset->Width), Height(spriteAsset->Height)
 		{
 		}
 
-		std::string name;
-		std::string textureName;
-		int x{}, y{}, width{}, height{};
+		const std::string AssetName;
+		const std::string TextureName;
+		const int X, Y, Width, Height;
 	};
 
 	class AnimationAsset : public SpriteAsset
 	{
 	public:
-		AnimationAsset(std::string inName, std::string inTextureName, int inX, int inY, int inWidth, int inHeight, int inFrame, int inSpeed) :
-			SpriteAsset(inName, inTextureName, inX, inY, inWidth, inHeight), frame(inFrame), speed(inSpeed)
+		AnimationAsset() = default;
+		AnimationAsset(std::string assetName, std::string textureName, int x, int y, int width, int height, int frame, float speed) :
+			SpriteAsset(assetName, textureName, x, y, width, height), Frame(frame), Speed(speed)
 		{
 		}
 
-		int frame{}, speed{};
+		AnimationAsset(const AnimationAsset& animationAsset) :
+			SpriteAsset(animationAsset.AssetName, animationAsset.TextureName, animationAsset.X, animationAsset.Y,
+				animationAsset.Width, animationAsset.Height), Frame(animationAsset.Frame), Speed(animationAsset.Speed)
+		{
+		}
+
+		int Frame;
+		float Speed;
 	};
 
 	class UAsset
@@ -71,7 +143,7 @@ namespace uei
 
 		void Save();
 		void AddSprite(const std::string& name, const std::string& path, const int x, const int y, const int width, const int height);
-		void AddAnimation(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height, const int frames, const int speed);
+		void AddAnimation(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height, const int frames, const float speed);
 		void AddPrefab(const std::string& name, uei::UEntity* prefab);
 
 	private:

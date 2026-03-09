@@ -83,7 +83,7 @@ namespace uei
 
 		void Start();
 		void Load(std::string levelName);
-		void Update(float deltaTime);
+		void Update();
 		//void FixedUpdate(float fixedDeltaTime);
 		void UpdateNavGrid();
 		void AddNewEntities();

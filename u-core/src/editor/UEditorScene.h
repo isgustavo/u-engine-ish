@@ -37,7 +37,7 @@ namespace uei
 		int newSpriteWidth;
 		int newSpriteHeight;
 		int newAnimationFrame = 0;
-		int newAnimationSpeed = 0;
+		float newAnimationSpeed = 0;
 		int currentAnimationFrame = 0;
 		float currentAnimationDeltaTime = .0f;
 
@@ -59,6 +59,10 @@ namespace uei
 		void LoadScene();
 		void SaveScene();
 		void CloseScene();
+
+		void AddImGui(const AnimationAsset* animationData, float thumbnailSize = 64.0f);
+		void AddImGui(const std::string& textureName, int x, int y, int width, int height, float speed, int frame, float thumbnailSize = 64.0f);
+		void AddImGui(const SpriteAsset* spriteData, bool flipX, bool flipY, float thumbnailSize = 64.0f);
 
 		//void SaveAsset();
 		//void SaveUpdatePrefab();

@@ -47,7 +47,8 @@ namespace uei
 			else if (str == ANIMATION)
 			{
 				std::string name, textureName;
-				int x, y, width, height, frames, speed;
+				int x, y, width, height, frames;
+				float speed;
 				file >> name >> textureName >> x >> y >> width >> height >> frames >> speed;
 				AddAnimation(name, textureName, x, y, width, height, frames, speed);
 			}
@@ -97,22 +98,15 @@ namespace uei
 
 			for (const auto& [key, value] : spriteAssets)
 			{
-				content += SPRITE + " " + key + " " + value.textureName + " " +
-					std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + "\n";
+				content += SPRITE + " " + key + " " + value.TextureName + " " +
+					std::to_string(value.X) + " " + std::to_string(value.Y) + " " + std::to_string(value.Width) + " " + std::to_string(value.Height) + "\n";
 			}
-
-			//auto& allAsstTypes = engine.Assets()->AllAssetTypes();
-			//if (allAsstTypes[assetTypeSelectedIndex] == SPRITE)
-			//{
-			//	content += SPRITE + " " + newName + " " + engine.Assets()->AllTextures()[assetTextureSelectedIndex] + " " +
-			//		std::to_string(newSpriteX) + " " + std::to_string(newSpriteY) + " " + std::to_string(newSpriteWidth) + " " + std::to_string(newSpriteHeight) + "\n";
-			//}
 
 			for (const auto& [key, value] : animations)
 			{
-				content += ANIMATION + " " + key + " " + value.textureName + " " +
-					std::to_string(value.x) + " " + std::to_string(value.y) + " " + std::to_string(value.width) + " " + std::to_string(value.height) + " " +
-					std::to_string(value.frame) + " " + std::to_string(value.speed) + "\n";
+				content += ANIMATION + " " + key + " " + value.TextureName + " " +
+					std::to_string(value.X) + " " + std::to_string(value.Y) + " " + std::to_string(value.Width) + " " + std::to_string(value.Height) + " " +
+					std::to_string(value.Frame) + " " + std::to_string(value.Speed) + "\n";
 			}
 
 			for (const auto& [key, value] : prefabs)
@@ -124,13 +118,6 @@ namespace uei
 					content += COMPONENT + " " + c_value->ComponentName() + " " + c_value->Save() + "\n";
 				}
 			}
-
-			//if (allAsstTypes[assetTypeSelectedIndex] == ANIMATION)
-			//{
-			//	content += ANIMATION + " " + newName + " " + engine.Assets()->AllTextures()[assetTextureSelectedIndex] + " " +
-			//		std::to_string(newSpriteX) + " " + std::to_string(newSpriteY) + " " + std::to_string(newSpriteWidth) + " " + std::to_string(newSpriteHeight) + " " +
-			//		std::to_string(newAnimationFrame) + " " + std::to_string(newAnimationSpeed) + "\n";
-			//}
 
 			std::ofstream out(filePath);
 			out << content;
@@ -163,7 +150,7 @@ namespace uei
 		spriteNames.push_back(name);
 		spriteAssets.emplace(name, SpriteAsset{ name, textureName, x, y, width, height });
 	}
-	void UAsset::AddAnimation(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height, const int frames, const int speed)
+	void UAsset::AddAnimation(const std::string& name, const std::string& textureName, const int x, const int y, const int width, const int height, const int frames, const float speed)
 	{
 		auto& texture = GetTexture(textureName);
 		animationNames.push_back(name);

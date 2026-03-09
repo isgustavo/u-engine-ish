@@ -14,6 +14,8 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <systems/SStaticDrawSystem.h>
+#include <systems/SAnimationSystem.h>
 
 
 namespace uei
@@ -29,12 +31,13 @@ namespace uei
     void UEditorScene::OnStart()
     {
         bMainTab = true;
-        AddSystem<SDrawSystem>();
+        AddSystem<SAnimationSystem>();
+        AddDrawSystem<SDrawSystem>(true);
     }
 
     void UEditorScene::OnUpdate(float deltaTime)
     {
-        currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
+        currentAnimationDeltaTime += deltaTime;
 
         if (bMainTab)
         {
@@ -66,14 +69,14 @@ namespace uei
 
         if (bPrefabSelected)
         {
-            CTransform* transform = prefab->GetComponent<CTransform>();
-            CSprite* sprite = prefab->GetComponent<CSprite>();
+            CTransform* cTransform = prefab->GetComponent<CTransform>();
+            CSprite* cSprite = prefab->GetComponent<CSprite>();
             
             sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-            int x = ((mousePosition.x / gridSize) * gridSize) + (sprite->FlipX() ? gridSize : 0);
-            int y = ((mousePosition.y / gridSize) * gridSize) + (sprite->FlipY() ? gridSize : 0);
-            
-            transform->SetPosition(sf::Vector2f(x, y));
+            int x = ((mousePosition.x / gridSize) * gridSize) + (cSprite->FlipX() ? gridSize : 0);
+            int y = ((mousePosition.y / gridSize) * gridSize) + (cSprite->FlipY() ? gridSize : 0);
+
+            cTransform->SetPosition(sf::Vector2f(x, y));
         }
     }
 
@@ -87,11 +90,44 @@ namespace uei
         if (bPrefabSelected)
         {
             CTransform* cTransform = prefab->GetComponent<CTransform>();
+            CIdleAnimation* cIdleAnimation = prefab->GetComponent<CIdleAnimation>();
             CSprite* cSprite = prefab->GetComponent<CSprite>();
 
-            uei::SpriteAsset spriteAsset = engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
-            sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(spriteAsset.textureName),
-                sf::IntRect({ spriteAsset.x, spriteAsset.y }, { spriteAsset.width, spriteAsset.height }));
+            std::string textureName;
+            int x, y, width, height;
+            bool flipX = false, flipY = false;
+            if (cIdleAnimation != nullptr)
+            {
+                if (cIdleAnimation->GetAnimationAsset() != nullptr)
+                {
+                    const AnimationAsset* animationAsset = cIdleAnimation->GetAnimationAsset();// engine.Assets()->GetAnimation(cIdleAnimation->GetIdleAnimationName());
+                    textureName = animationAsset->TextureName;
+                    int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset->Speed) % animationAsset->Frame;
+                    x = animationAsset->X + (currentAnimationFrame * animationAsset->Width);
+                    y = animationAsset->Y;
+                    width = animationAsset->Width;
+                    height = animationAsset->Height;
+                }
+            }
+            else
+            {
+                if (cSprite->GetSpriteAsset() != nullptr)
+                {
+                    const SpriteAsset* spriteAsset = cSprite->GetSpriteAsset();// engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
+                    textureName = spriteAsset->TextureName;
+                    x = spriteAsset->X;
+                    y = spriteAsset->Y;
+                    width = spriteAsset->Width;
+                    height = spriteAsset->Height; 
+                    flipX = cSprite->FlipX();
+                    flipY = cSprite->FlipY();
+                }
+            }
+
+            sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(textureName), sf::IntRect({ x, y }, { width, height }));
+            sprite.setScale(sf::Vector2f((flipX ? -1 : 1) * (gridSize / sprite.getTextureRect().size.x),
+                (flipY ? -1 : 1) * gridSize / sprite.getTextureRect().size.y));
+
             sprite.setPosition(cTransform->Position());
 
             engine.RenderWindow().draw(sprite);
@@ -300,7 +336,6 @@ namespace uei
                 {
                     sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(allTexture[assetTextureSelectedIndex]),
                         sf::IntRect({ newSpriteX, newSpriteY }, { newSpriteWidth, newSpriteHeight }));
-                    //sprite->scale(sf::Vector2f(10.f, 10.f));
 
                     ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
                     sf::Vector2u size = sprite->getTexture().getSize();
@@ -330,34 +365,13 @@ namespace uei
                     ImGui::Text("Speed");
                     ImGui::SameLine();
                     ImGui::PushItemWidth(60);
-                    ImGui::InputInt("##AddNewSpeed", &newAnimationSpeed, 0);
+                    ImGui::InputFloat("##AddNewSpeed", &newAnimationSpeed, 0);
                     ImGui::PopItemWidth();
-
-                    //ImGui::SliderInt("##CurrentFrame", &currentAnimationFrame, 0, newAnimationFrame - 1);
 
                     if (newAnimationFrame > 0 && newAnimationSpeed > 0)
                     {
-                        currentAnimationDeltaTime += ImGui::GetIO().DeltaTime;
-                        currentAnimationFrame = (int)(currentAnimationDeltaTime * newAnimationSpeed) % newAnimationFrame;
-                        int spriteX = newSpriteX + (currentAnimationFrame * newSpriteWidth);
-                        sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(allTexture[assetTextureSelectedIndex]),
-                            sf::IntRect({ spriteX, newSpriteY }, { newSpriteWidth, newSpriteHeight }));
-                        sprite->scale(sf::Vector2f(10.f, 10.f));
-
-                        ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
-                        sf::Vector2u size = sprite->getTexture().getSize();
-
-                        ImGui::Spacing();
-
-                        ImVec2 uv0(
-                            (float)spriteX / size.x,
-                            (float)newSpriteY / size.y);
-
-                        ImVec2 uv1(
-                            (float)(spriteX + newSpriteWidth) / size.x,
-                            (float)(newSpriteY + newSpriteHeight) / size.y);
-
-                        ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
+                        AddImGui(allTexture[assetTextureSelectedIndex], newSpriteX, newSpriteY, newSpriteWidth, newSpriteHeight,
+                            newAnimationSpeed, newAnimationFrame);
                     }
                 }
             }
@@ -382,19 +396,9 @@ namespace uei
         {
             ImGui::PushID(key.c_str());
 
-            auto& data = engine.Assets()->GetSpriteAsset(value.name);
-            sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
-                sf::IntRect({ data.x, data.y }, { data.width, data.height }));
+            AddImGui(&engine.Assets()->GetSpriteAsset(value.AssetName), false, false, thumbnailSize);
 
-            ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
-            sf::Vector2u size = sprite.getTexture().getSize();
-
-            ImVec2 uv0((float)data.x / size.x, (float)data.y / size.y);
-            ImVec2 uv1((float)(data.x + data.width) / size.x, (float)(data.y + data.height) / size.y);
-
-            ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-
-            ImGui::TextWrapped("%s", value.name.c_str());
+            ImGui::TextWrapped("%s", value.AssetName.c_str());
             if (ImGui::Button("Remove"))
             {
                 //onRemove();
@@ -406,22 +410,9 @@ namespace uei
         {
             ImGui::PushID(key.c_str());
 
-            auto& data = engine.Assets()->GetAnimation(value.name);
-            int currentAnimationFrame = (int)(currentAnimationDeltaTime * data.speed) % data.frame;
-            int spriteX = data.x + (currentAnimationFrame * data.width);
+            AddImGui(&engine.Assets()->GetAnimation(value.AssetName), thumbnailSize);
 
-            sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
-                sf::IntRect({ spriteX, data.y }, { data.width, data.height }));
-
-            ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
-            sf::Vector2u size = sprite.getTexture().getSize();
-
-            ImVec2 uv0((float)spriteX / size.x, (float)data.y / size.y);
-            ImVec2 uv1((float)(spriteX + data.width) / size.x, (float)(data.y + data.height) / size.y);
-
-            ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-
-            ImGui::TextWrapped("%s", value.name.c_str());
+            ImGui::TextWrapped("%s", value.AssetName.c_str());
             if (ImGui::Button("Remove"))
             {
                 //onRemove();
@@ -544,7 +535,7 @@ namespace uei
 
                 if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
                 {
-                    prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]));
+                    prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]), true);
                 }
             }
             ImGui::EndCombo();
@@ -564,6 +555,49 @@ namespace uei
             prefab->RemoveComponent(prefabComponentToRemove[i]);
         }
     }
+
+    void UEditorScene::AddImGui(const AnimationAsset* animationData, float thumbnailSize)
+    {
+        AddImGui(animationData->TextureName, animationData->X, animationData->Y, animationData->Width, animationData->Height,
+            animationData->Speed, animationData->Frame, thumbnailSize);
+    }
+    void UEditorScene::AddImGui(const std::string& textureName, int x, int y, int width, int height, float speed, int frame, float thumbnailSize)
+    {
+        int currentAnimationFrame = (int)(currentAnimationDeltaTime * speed) % frame;
+        int spriteX = x + (currentAnimationFrame * width);
+
+        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(textureName),
+            sf::IntRect({ spriteX, y }, { width, height }));
+
+        ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
+        sf::Vector2u size = sprite.getTexture().getSize();
+
+        ImVec2 uv0((float)spriteX / size.x, (float)y / size.y);
+        ImVec2 uv1((float)(spriteX + width) / size.x, (float)(y + height) / size.y);
+
+        ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
+    }
+    void UEditorScene::AddImGui(const SpriteAsset* spriteData, bool flipX, bool flipY, float thumbnailSize)
+    {
+        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(spriteData->TextureName),
+            sf::IntRect({ spriteData->X, spriteData->Y }, { spriteData->Width, spriteData->Height }));
+
+        ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
+        sf::Vector2u size = sprite.getTexture().getSize();
+
+        ImVec2 uv0(
+            flipX ? (float)(spriteData->X + spriteData->Width) / size.x : (float)spriteData->X / size.x,
+            flipY ? (float)(spriteData->Y + spriteData->Height) / size.y : (float)spriteData->Y / size.y
+        );
+
+        ImVec2 uv1(
+            flipX ? (float)spriteData->X / size.x : (float)(spriteData->X + spriteData->Width) / size.x,
+            flipY ? (float)spriteData->Y / size.y : (float)(spriteData->Y + spriteData->Height) / size.y
+        );
+
+        ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
+    }
+
     void UEditorScene::ShowPrefabGallery()
     {
         const float thumbnailSize = 64.0f;
@@ -583,54 +617,24 @@ namespace uei
         {
             ImGui::PushID(prefabName.c_str());
             bool bShowDefaultThumb = true;
-            if (value->HasComponent<CIdleAnimation>())
+
+            CIdleAnimation* cIdleAnimation = value->GetComponent<CIdleAnimation>();
+            CSprite* cSprite = value->GetComponent<CSprite>();
+            if (cIdleAnimation != nullptr)
             {
-                CIdleAnimation* idleAnimation = value->GetComponent<CIdleAnimation>();
-                if (idleAnimation->IdleAnimation() != EMPTY)
+                if (cIdleAnimation->GetAnimationAsset() != nullptr)
                 {
-                    auto& data = engine.Assets()->GetAnimation(idleAnimation->IdleAnimation());
-
-                    int currentAnimationFrame = (int)(currentAnimationDeltaTime * data.speed) % data.frame;
-                    int spriteX = data.x + (currentAnimationFrame * data.width);
-
-                    sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
-                        sf::IntRect({ spriteX, data.y }, { data.width, data.height }));
-
-                    ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
-                    sf::Vector2u size = sprite.getTexture().getSize();
-
-                    ImVec2 uv0((float)spriteX / size.x, (float)data.y / size.y);
-                    ImVec2 uv1((float)(spriteX + data.width) / size.x, (float)(data.y + data.height) / size.y);
-
-                    ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-
+                    AddImGui(cIdleAnimation->GetAnimationAsset());
                     bShowDefaultThumb = false;
                 }
             }
-            else if (value->HasComponent<CSprite>())
+            else if (cSprite != nullptr)
             {
-                CSprite* cSprite = value->GetComponent<CSprite>();
-                auto& data = engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
-                
-                sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
-                    sf::IntRect({ data.x, data.y }, { data.width, data.height }));
-
-                ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
-                sf::Vector2u size = sprite.getTexture().getSize();
-
-                ImVec2 uv0(
-                    cSprite->FlipX() ? (float)(data.x + data.width) / size.x : (float)data.x / size.x,
-                    cSprite->FlipY() ? (float)(data.y + data.height) / size.y : (float)data.y / size.y
-                );
-
-                ImVec2 uv1(
-                    cSprite->FlipX() ? (float)data.x / size.x : (float)(data.x + data.width) / size.x,
-                    cSprite->FlipY() ? (float)data.y / size.y : (float)(data.y + data.height) / size.y
-                );
-
-                ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
-
-                bShowDefaultThumb = false;
+                if (cSprite->GetSpriteAsset() != nullptr)
+                {
+                    AddImGui(cSprite->GetSpriteAsset(), cSprite->FlipX(), cSprite->FlipY());
+                    bShowDefaultThumb = false;
+                }
             }
             
             if (bShowDefaultThumb)
@@ -646,17 +650,6 @@ namespace uei
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && bSceneLoaded)
                 {
                     prefab = value;// ->Clone();
-                    CSprite* cSprite = prefab->GetComponent<CSprite>();
-                    if (cSprite != nullptr)
-                    {
-                        auto& data = engine.Assets()->GetSpriteAsset(cSprite->SpriteName());
-
-                        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(data.textureName),
-                            sf::IntRect({ data.x, data.y }, { data.width, data.height }));
-
-                        sprite.setScale(sf::Vector2f((cSprite->FlipX() ? -1 : 1) * (gridSize / sprite.getTextureRect().size.x),
-                            		(cSprite->FlipY() ? -1 : 1) * gridSize / sprite.getTextureRect().size.y));
-                    }
                     bPrefabSelected = true;
                     bMainTab = false;
                 }

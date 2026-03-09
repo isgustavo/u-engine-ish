@@ -35,9 +35,10 @@ namespace uei
 			return t;
 		}
 
-		void AddComponent(UComponent* component)
+		void AddComponent(UComponent* component, bool bisEditor = false)
 		{
-			component->OnComponentAdd(*this);
+			if(bisEditor)
+				component->OnComponentAdd(*this);
 			components[typeid(*component)] = component;
 		}
 

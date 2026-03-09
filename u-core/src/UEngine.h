@@ -37,6 +37,9 @@ namespace uei
 		UAsset* Assets() { return assets; }
 		UScene* CurrentScene() { return currentScene; }
 		sf::RenderWindow& RenderWindow() { return renderWindow; }
+
+		const float DeltaTime() const { return fixedDeltaTime; }
+
 		void Clear();
 		sf::Vector2f& ScreenSize();
 
