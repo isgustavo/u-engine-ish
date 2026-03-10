@@ -88,12 +88,15 @@ namespace uei
 		bool bIsPause;
 		bool bIsStarted = false;
 		bool bIsNavGridDirty = false;
+		bool bShowNavGrid = true;
 
 		void Start();
 		void Load(std::string levelName);
 		void Update();
 		//void FixedUpdate(float fixedDeltaTime);
 		void UpdateNavGrid();
+		void ShowNavGrid();
+
 		void AddNewEntities();
 		void RemoveInactiveEntities();
 		void Draw();

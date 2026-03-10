@@ -334,23 +334,7 @@ namespace uei
                 
                 if (allAsstTypes[assetTypeSelectedIndex] == SPRITE)
                 {
-                    sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(allTexture[assetTextureSelectedIndex]),
-                        sf::IntRect({ newSpriteX, newSpriteY }, { newSpriteWidth, newSpriteHeight }));
-
-                    ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
-                    sf::Vector2u size = sprite->getTexture().getSize();
-
-                    ImGui::Spacing();
-
-                    ImVec2 uv0(
-                        (float)newSpriteX / size.x,
-                        (float)newSpriteY / size.y);
-
-                    ImVec2 uv1(
-                        (float)(newSpriteX + newSpriteWidth) / size.x,
-                        (float)(newSpriteY + newSpriteHeight) / size.y);
-
-                    ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
+                    AddImGui(allTexture[assetTextureSelectedIndex], newSpriteX, newSpriteY, newSpriteWidth, newSpriteHeight, false, false);
                 }
                 else if (allAsstTypes[assetTypeSelectedIndex] == ANIMATION)
                 {
@@ -555,49 +539,6 @@ namespace uei
             prefab->RemoveComponent(prefabComponentToRemove[i]);
         }
     }
-
-    void UEditorScene::AddImGui(const AnimationAsset* animationData, float thumbnailSize)
-    {
-        AddImGui(animationData->TextureName, animationData->X, animationData->Y, animationData->Width, animationData->Height,
-            animationData->Speed, animationData->Frame, thumbnailSize);
-    }
-    void UEditorScene::AddImGui(const std::string& textureName, int x, int y, int width, int height, float speed, int frame, float thumbnailSize)
-    {
-        int currentAnimationFrame = (int)(currentAnimationDeltaTime * speed) % frame;
-        int spriteX = x + (currentAnimationFrame * width);
-
-        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(textureName),
-            sf::IntRect({ spriteX, y }, { width, height }));
-
-        ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
-        sf::Vector2u size = sprite.getTexture().getSize();
-
-        ImVec2 uv0((float)spriteX / size.x, (float)y / size.y);
-        ImVec2 uv1((float)(spriteX + width) / size.x, (float)(y + height) / size.y);
-
-        ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-    }
-    void UEditorScene::AddImGui(const SpriteAsset* spriteData, bool flipX, bool flipY, float thumbnailSize)
-    {
-        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(spriteData->TextureName),
-            sf::IntRect({ spriteData->X, spriteData->Y }, { spriteData->Width, spriteData->Height }));
-
-        ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
-        sf::Vector2u size = sprite.getTexture().getSize();
-
-        ImVec2 uv0(
-            flipX ? (float)(spriteData->X + spriteData->Width) / size.x : (float)spriteData->X / size.x,
-            flipY ? (float)(spriteData->Y + spriteData->Height) / size.y : (float)spriteData->Y / size.y
-        );
-
-        ImVec2 uv1(
-            flipX ? (float)spriteData->X / size.x : (float)(spriteData->X + spriteData->Width) / size.x,
-            flipY ? (float)spriteData->Y / size.y : (float)(spriteData->Y + spriteData->Height) / size.y
-        );
-
-        ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
-    }
-
     void UEditorScene::ShowPrefabGallery()
     {
         const float thumbnailSize = 64.0f;
@@ -636,7 +577,7 @@ namespace uei
                     bShowDefaultThumb = false;
                 }
             }
-            
+
             if (bShowDefaultThumb)
             {
                 if (ImGui::Button("##thumb" + (++prefabIndex), ImVec2(thumbnailSize, thumbnailSize)))
@@ -679,6 +620,50 @@ namespace uei
         {
             engine.Assets()->Save();
         }
+    }
+
+    void UEditorScene::AddImGui(const AnimationAsset* animationData, float thumbnailSize)
+    {
+        AddImGui(animationData->TextureName, animationData->X, animationData->Y, animationData->Width, animationData->Height,
+            animationData->Speed, animationData->Frame, thumbnailSize);
+    }
+    void UEditorScene::AddImGui(const std::string& textureName, int x, int y, int width, int height, float speed, int frame, float thumbnailSize)
+    {
+        int currentAnimationFrame = (int)(currentAnimationDeltaTime * speed) % frame;
+        int spriteX = x + (currentAnimationFrame * width);
+
+        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(textureName), sf::IntRect({ spriteX, y }, { width, height }));
+
+        ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
+        sf::Vector2u size = sprite.getTexture().getSize();
+
+        ImVec2 uv0((float)spriteX / size.x, (float)y / size.y);
+        ImVec2 uv1((float)(spriteX + width) / size.x, (float)(y + height) / size.y);
+
+        ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
+    }
+    void UEditorScene::AddImGui(const SpriteAsset* spriteData, bool flipX, bool flipY, float thumbnailSize)
+    {
+        AddImGui(spriteData->TextureName, spriteData->X, spriteData->Y, spriteData->Width, spriteData->Height, flipX, flipY);
+    }
+    void UEditorScene::AddImGui(const std::string& textureName, int x, int y, int width, int height, bool flipX, bool flipY, float thumbnailSize)
+    {
+        sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(textureName), sf::IntRect({ x, y }, { width, height }));
+
+        ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
+        sf::Vector2u size = sprite.getTexture().getSize();
+
+        ImVec2 uv0(
+            flipX ? (float)(x + width) / size.x : (float)x / size.x,
+            flipY ? (float)(y + height) / size.y : (float)y / size.y
+        );
+
+        ImVec2 uv1(
+            flipX ? (float)x / size.x : (float)(x + width) / size.x,
+            flipY ? (float)y / size.y : (float)(y + height) / size.y
+        );
+
+        ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
     }
 
     void UEditorScene::CreateScene()
@@ -807,10 +792,19 @@ namespace uei
             sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
             CSprite* sprite = prefab->GetComponent<CSprite>();
             
-            int x = ((mousePosition.x / gridSize) * gridSize) + (sprite->FlipX() ? gridSize : 0);
-            int y = ((mousePosition.y / gridSize) * gridSize) + (sprite->FlipY() ? gridSize : 0);
+            int x = (mousePosition.x / gridSize) * gridSize;
+            int y = (mousePosition.y / gridSize) * gridSize;
 
             AddEntity(prefab->Clone(), sf::Vector2f(x, y));
+        }
+        else 
+        {
+            sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
+            int x = (mousePosition.x / gridSize) * gridSize;
+            int y = (mousePosition.y / gridSize) * gridSize;
+
+            int eColumns = (int)x / gridSize;
+            int eRows = (int)y / gridSize;
         }
     }
 }

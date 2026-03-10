@@ -47,6 +47,7 @@ namespace uei
 	void UScene::Start()
 	{
 		OnStart();
+		bIsNavGridDirty = true;
 		bIsStarted = true;
 	}
 	void UScene::Restart(std::string levelName)
@@ -84,7 +85,7 @@ namespace uei
 			if (str == LEVEL)
 			{
 				file >> gridColumn >> gridRow >> gridSize;
-				navGrid = std::vector(gridColumn * gridRow, -1);
+				navGrid = std::vector(gridColumn * gridRow, 0);
 			}
 			else if (str == ENTITY)
 			{
@@ -107,6 +108,7 @@ namespace uei
 	{
 		AddNewEntities();
 		RemoveInactiveEntities();
+
 		if (bIsNavGridDirty)
 			UpdateNavGrid();
 
@@ -114,6 +116,7 @@ namespace uei
 		{
 			s.get()->Update(engine, entities);
 		}
+
 		OnUpdate(engine.DeltaTime());
 	}
 
@@ -123,6 +126,10 @@ namespace uei
 		{
 			s.get()->Update(engine, entities);
 		}
+
+		if (bShowNavGrid)
+			ShowNavGrid();
+
 		OnDraw();
 	}
 
@@ -137,11 +144,6 @@ namespace uei
 		AddEntity(entity);
 		CTransform* transform = entity->GetComponent<CTransform>();
 		transform->InitPosition(position);
-		//if (entity->HasComponent<CSprite>())
-		//{
-		//	CSprite* sprite = entity->GetComponent<CSprite>();
-			//sprite->SetScale(gridSize);
-		//}
 	}
 
 	void UScene::AddNewEntities()
@@ -187,26 +189,54 @@ namespace uei
 
 		for (auto& e : entities)
 		{
-			uei::CTransform* c_transform = e.get()->GetComponent<uei::CTransform>();
-			uei::CNavGridModifier* c_navGridModifier = e.get()->GetComponent<uei::CNavGridModifier>();
+			CTransform* cTransform = e.get()->GetComponent<CTransform>();
+			CNavGridModifier* cNavGridModifier = e.get()->GetComponent<CNavGridModifier>();
+			
+			if (cNavGridModifier == nullptr || cTransform == nullptr) continue;
 
-			if (c_navGridModifier == nullptr || c_transform == nullptr) continue;
+			int eColumns = (int)cTransform->Position().x / gridSize;
+			int eRows = (int)cTransform->Position().y / gridSize;
 
-			int eColumns = (int)c_transform->Position().x / gridSize;
-			int eRows = (int)c_transform->Position().y / gridSize;
+			int index = eRows * gridColumn + eColumns;
 
-			for (int i = eColumns; i < eColumns + c_navGridModifier->Columns(); i++)
+			int column = index % gridColumn;
+			int row = index / gridColumn;
+
+			int startColumn = std::max(column - cNavGridModifier->StartColumn(), 0);
+			int startRow = std::max(row - cNavGridModifier->StartRow(), 0);
+			for (int i = startColumn; i < startColumn + cNavGridModifier->Columns(); i++)
 			{
-				for (int j = eRows; j < eRows + c_navGridModifier->Rows(); j++)
+				for (int j = startRow; j < startRow + cNavGridModifier->Rows(); j++)
 				{
-					navGrid[i * gridColumn + j] += c_navGridModifier->Weight();
+					if ((j * gridColumn + i) >= navGrid.size()) break;
+					navGrid[j * gridColumn + i] += cNavGridModifier->Weight();
 				}
 			}
 		}
+
 		bIsNavGridDirty = false;
-		for (int i = 0; i < navGrid.size(); i++)
+	}
+
+	void UScene::ShowNavGrid()
+	{
+		for (int i = 0; i < gridColumn; i++)
 		{
-			std::cout << navGrid[i] << ",";
+			for (int j = 0; j < gridRow; j++)
+			{
+				sf::RectangleShape grid(sf::Vector2f(gridSize, gridSize));
+				grid.setPosition(sf::Vector2f(i * gridSize, j * gridSize));
+
+				if (navGrid[j * gridColumn + i] == 0)
+				{
+					grid.setFillColor(sf::Color(0, 0, 255, 0));
+				}
+				else 
+				{
+					grid.setFillColor(sf::Color(0, 0, 255, 100 + navGrid[j * gridColumn + i]));
+				}
+
+				engine.RenderWindow().draw(grid);
+			}
 		}
 	}
 

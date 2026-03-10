@@ -23,17 +23,8 @@ namespace uei
 		bool FlipX() const { return bFlipX; }
 		bool FlipY() const { return bFlipY; }
 
-		//void SetScale(int gridSize);
-
 		UComponent* Clone() const override
 		{
-			//CSprite* s = nullptr;
-			//if (spriteName != EMPTY)
-			//{
-				//s = new CSprite(spriteAsset, bFlipX, bFlipY);
-				//s->sprite = new sf::Sprite(*sprite);
-			//}
-			//return s;
 			if(spriteAsset != nullptr)
 				return new CSprite(spriteAsset, bFlipX, bFlipY);
 			else 

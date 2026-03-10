@@ -32,11 +32,12 @@ namespace uei
 		for (int i = 0; i < transforms.size(); i++)
 		{
 			const sf::Vector2f p = transforms[i]->Position();			
-			float left = sprites[i]->FlipX() ? p.x - tileSize : p.x;
-			float right = sprites[i]->FlipX() ? p.x : p.x + tileSize;
 
-			float top = sprites[i]->FlipY() ? p.y - tileSize : p.y;
-			float bottom = sprites[i]->FlipY() ? p.y : p.y + tileSize;
+			float left = p.x;
+			float right = p.x + tileSize;
+
+			float top = p.y;
+			float bottom = p.y + tileSize;
 
 			vertexArray[(i * 6) + 0].position = sf::Vector2f(left, top);
 			vertexArray[(i * 6) + 1].position = sf::Vector2f(right, top);
@@ -46,10 +47,9 @@ namespace uei
 			vertexArray[(i * 6) + 4].position = sf::Vector2f(right, top);
 			vertexArray[(i * 6) + 5].position = sf::Vector2f(right, bottom);
 
-			//uei::SpriteAsset spriteAsset;
 			if (sprites[i]->GetSpriteAsset() != nullptr)
 			{
-				const uei::SpriteAsset* spriteAsset = sprites[i]->GetSpriteAsset();// engine.Assets()->GetSpriteAsset(sprites[i]->SpriteName());
+				const uei::SpriteAsset* spriteAsset = sprites[i]->GetSpriteAsset();
 
 				left = spriteAsset->X;
 				right = spriteAsset->X + spriteAsset->Width;
@@ -70,21 +70,10 @@ namespace uei
 				vertexArray[(i * 6) + 4].texCoords = { right, top };
 				vertexArray[(i * 6) + 5].texCoords = { right, bottom };
 			}
-			//else 
-			//{
-			//	vertexArray[(i * 6) + 0].color = sf::Color::Red;
-			//	vertexArray[(i * 6) + 1].color = sf::Color::Red;
-			//	vertexArray[(i * 6) + 2].color = sf::Color::Red;
-			//								
-			//	vertexArray[(i * 6) + 3].color = sf::Color::Red;
-			//	vertexArray[(i * 6) + 4].color = sf::Color::Red;
-			//	vertexArray[(i * 6) + 5].color = sf::Color::Red;
-			//}
 		}
 
 		sf::RenderStates states;
 		states.texture = &engine.Assets()->GetTexture("pacman_map.png");
 		engine.RenderWindow().draw(vertexArray, states);
-
 	}
 }

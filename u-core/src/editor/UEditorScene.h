@@ -63,6 +63,7 @@ namespace uei
 		void AddImGui(const AnimationAsset* animationData, float thumbnailSize = 64.0f);
 		void AddImGui(const std::string& textureName, int x, int y, int width, int height, float speed, int frame, float thumbnailSize = 64.0f);
 		void AddImGui(const SpriteAsset* spriteData, bool flipX, bool flipY, float thumbnailSize = 64.0f);
+		void AddImGui(const std::string& textureName, int x, int y, int width, int height, bool flipX, bool flipY, float thumbnailSize = 64.0f);
 
 		//void SaveAsset();
 		//void SaveUpdatePrefab();
