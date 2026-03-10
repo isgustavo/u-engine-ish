@@ -14,6 +14,7 @@ namespace uei
     }
     void UGameScene::OnStart()
     {
+        bShowNavGrid = false;
         AddSystem<SMovementSystem>();
         AddSystem<SAnimationSystem>();
         AddDrawSystem<SStaticDrawSystem>();

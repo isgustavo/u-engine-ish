@@ -73,6 +73,7 @@ namespace uei
 		int gridColumn;
 		int gridRow;
 		int gridSize;
+		bool bShowNavGrid = true;
 
 		void Restart(std::string levelName);
 		void ClearScene();
@@ -88,7 +89,7 @@ namespace uei
 		bool bIsPause;
 		bool bIsStarted = false;
 		bool bIsNavGridDirty = false;
-		bool bShowNavGrid = true;
+		
 
 		void Start();
 		void Load(std::string levelName);

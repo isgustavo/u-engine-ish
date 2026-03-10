@@ -31,6 +31,7 @@ namespace uei
     void UEditorScene::OnStart()
     {
         bMainTab = true;
+        bShowNavGrid = true;
         AddSystem<SAnimationSystem>();
         AddDrawSystem<SDrawSystem>(true);
     }
@@ -797,15 +798,15 @@ namespace uei
 
             AddEntity(prefab->Clone(), sf::Vector2f(x, y));
         }
-        else 
-        {
-            sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-            int x = (mousePosition.x / gridSize) * gridSize;
-            int y = (mousePosition.y / gridSize) * gridSize;
+        //else 
+        //{
+        //    sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
+        //    int x = (mousePosition.x / gridSize) * gridSize;
+        //    int y = (mousePosition.y / gridSize) * gridSize;
 
-            int eColumns = (int)x / gridSize;
-            int eRows = (int)y / gridSize;
-        }
+        //    int eColumns = (int)x / gridSize;
+        //    int eRows = (int)y / gridSize;
+        //}
     }
 }
 

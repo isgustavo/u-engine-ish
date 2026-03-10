@@ -35,6 +35,9 @@ namespace uei
 
 	void UScene::ClearScene()
 	{
+		bIsNavGridDirty = false;
+		bShowNavGrid = false;
+		navGrid.clear();
 		entities.clear();
 		systems.clear();
 		for (auto& [key, value] : entitiesMap)
