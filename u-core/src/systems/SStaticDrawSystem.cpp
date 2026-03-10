@@ -41,11 +41,11 @@ namespace uei
 			{
 				const sf::Vector2f p = transforms[i]->Position();
 				
-				float left = sprites[i]->FlipX() ? p.x - tileSize : p.x;
-				float right = sprites[i]->FlipX() ? p.x : p.x + tileSize;
+				float left = p.x;
+				float right = p.x + tileSize;
 
-				float top = sprites[i]->FlipY() ? p.y - tileSize : p.y;
-				float bottom = sprites[i]->FlipY() ? p.y : p.y + tileSize;
+				float top = p.y;
+				float bottom = p.y + tileSize;
 
 				vertexArray[(i * 6) + 0].position = sf::Vector2f(left, top);
 				vertexArray[(i * 6) + 1].position = sf::Vector2f(right, top);
