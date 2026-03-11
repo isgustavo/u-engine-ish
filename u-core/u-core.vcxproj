@@ -144,6 +144,7 @@
     <ClCompile Include="src\components\CIdleAnimation.cpp" />
     <ClCompile Include="src\components\CMovement.cpp" />
     <ClCompile Include="src\components\CMovementAnimation.cpp" />
+    <ClCompile Include="src\components\CNavGridModifier.cpp" />
     <ClCompile Include="src\components\CObstacle.cpp" />
     <ClCompile Include="src\components\CPath.cpp" />
     <ClCompile Include="src\components\CPlayer.cpp" />

@@ -13,6 +13,8 @@
 #include "components/CMovementAnimation.h"
 #include "components/CObstacle.h"
 #include "components/CStaticDraw.h"
+#include "components/CPlayer.h"
+#include "components/CNavGridModifier.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -192,6 +194,8 @@ namespace uei
 
 //REGISTER_COMPONENT(CTarget);
 //REGISTER_COMPONENT(CAnimation);
+REGISTER_COMPONENT(CNavGridModifier);
+REGISTER_COMPONENT(CPlayer);
 REGISTER_COMPONENT(CObstacle);
 REGISTER_COMPONENT(CStaticDraw);
 REGISTER_COMPONENT(CIdleAnimation);

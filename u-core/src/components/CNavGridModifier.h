@@ -6,19 +6,38 @@ namespace uei
 	class CNavGridModifier : public UComponent
 	{
 	public:
-		CNavGridModifier(int inRows, int inColumns, int inWeight) : UComponent(),
-			rows(inRows), columns(inColumns), weight(inWeight)
-		{
-			
-		}
+		CNavGridModifier(int inStartColumn = 0, int inColumns = 1, int inStartRow = 0, int inRows = 1, int inWeight = 100);
+
+		int Columns() { return columns; }
+		int StartColumn() { return startColumn; }
 
 		int Rows() { return rows; }
-		int Columns() { return columns; }
+		int StartRow() { return startRow; }
+
 		int Weight() { return weight; }
 
+		UComponent* Clone() const override
+		{
+			return new CNavGridModifier(startColumn, columns, startRow, rows, weight);
+		}
+
+		inline std::string ComponentName() const override { return "CNavGridModifier"; }
+
+		void LoadComponent(class UEngine& engine, std::istream& in) override;
+		std::string Save() const override;
+
+	protected:
+		void OnShowEditor(class UEngine& engine) override;
+		int GetEditorSize(UEngine& engine) const override;
+
 	private:
-		int rows;
+		int startColumn;
 		int columns;
+		int startRow;
+		int rows;
 		int weight;
+
+		void OnComponentAdd(UEntity& entity) override;
+		void OnComponentRemove(class UEntity& entity) override;
 	};
 }
