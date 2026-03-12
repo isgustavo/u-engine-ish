@@ -14,7 +14,6 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <systems/SStaticDrawSystem.h>
 #include <systems/SAnimationSystem.h>
 
 
@@ -33,7 +32,7 @@ namespace uei
         bMainTab = true;
         bShowNavGrid = true;
         AddSystem<SAnimationSystem>();
-        AddDrawSystem<SDrawSystem>(true);
+        AddDrawSystem<SDrawSystem>();
     }
 
     void UEditorScene::OnUpdate(float deltaTime)

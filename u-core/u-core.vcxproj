@@ -162,7 +162,6 @@
     <ClCompile Include="src\systems\SDrawSystem.cpp" />
     <ClCompile Include="src\systems\SMovementSystem.cpp" />
     <ClCompile Include="src\systems\SPathfinderSystem.cpp" />
-    <ClCompile Include="src\systems\SStaticDrawSystem.cpp" />
     <ClCompile Include="src\systems\USystem.cpp" />
     <ClCompile Include="src\UAsset.cpp" />
     <ClCompile Include="src\UEngine.cpp" />
@@ -307,7 +306,6 @@
     <ClInclude Include="src\systems\SDrawSystem.h" />
     <ClInclude Include="src\systems\SMovementSystem.h" />
     <ClInclude Include="src\systems\SPathfinderSystem.h" />
-    <ClInclude Include="src\systems\SStaticDrawSystem.h" />
     <ClInclude Include="src\systems\USystem.h" />
     <ClInclude Include="src\UAsset.h" />
     <ClInclude Include="src\UEditorScene.h" />

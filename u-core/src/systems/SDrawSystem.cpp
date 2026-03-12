@@ -1,79 +1,111 @@
 #include "SDrawSystem.h"
+
 #include "components/CTransform.h"
 #include "components/CSprite.h"
-#include <components/CStaticDraw.h>
+#include "components/CStaticDraw.h"
 
 namespace uei
 {
-	SDrawSystem::SDrawSystem(bool isEditor)
+	SDrawSystem::SDrawSystem()
 	{
-		bIsEditor = isEditor;
 	}
 
-	void uei::SDrawSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
+	void SDrawSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
 	{
-		std::vector<CTransform*> transforms;
-		std::vector<CSprite*> sprites;
+		const std::string STATIC = "S_";
+
+		transformMap.clear();
+		spriteMap.clear();
+
+		std::unordered_map<std::string, bool> dirtyMap;
 
 		for (auto& e : entities)
 		{
-			auto* cTransform = e->GetComponent<uei::CTransform>();
-			auto* cSprite = e->GetComponent<uei::CSprite>();
+			auto* cTransform = e->GetComponent<CTransform>();
+			auto* cSprite = e->GetComponent<CSprite>();
 			auto* cStaticDraw = e->GetComponent<CStaticDraw>();
 
-			if (cTransform == nullptr || cSprite == nullptr || (cStaticDraw != nullptr && !bIsEditor)) continue;
+			if (cTransform == nullptr || cSprite == nullptr) continue;
 
-			transforms.push_back(cTransform);
-			sprites.push_back(cSprite);
+			const SpriteAsset* spriteAsset = cSprite->GetSpriteAsset();
+			const std::string& key = (cStaticDraw != nullptr ? STATIC : "") + spriteAsset->TextureName;
+
+			if (cSprite->IsDirty())
+			{
+				dirtyMap[key] = true;
+				cSprite->SetDirty(false);
+			}
+
+			transformMap[key].push_back(cTransform);
+			spriteMap[key].push_back(cSprite);
 		}
 
-		sf::VertexArray vertexArray = sf::VertexArray(sf::PrimitiveType::Triangles, transforms.size() * 6);
-		float tileSize = engine.CurrentScene()->GridSize();
-		for (int i = 0; i < transforms.size(); i++)
+		for (auto& [key, value] : transformMap)
 		{
-			const sf::Vector2f p = transforms[i]->Position();			
+			if (!dirtyMap[key]) continue;
 
-			float left = p.x;
-			float right = p.x + tileSize;
+			std::cout << key << std::endl;
 
-			float top = p.y;
-			float bottom = p.y + tileSize;
+			std::vector<CTransform*> transforms = value;
+			std::vector<CSprite*> sprites = spriteMap[key];
 
-			vertexArray[(i * 6) + 0].position = sf::Vector2f(left, top);
-			vertexArray[(i * 6) + 1].position = sf::Vector2f(right, top);
-			vertexArray[(i * 6) + 2].position = sf::Vector2f(left, bottom);
-
-			vertexArray[(i * 6) + 3].position = sf::Vector2f(left, bottom);
-			vertexArray[(i * 6) + 4].position = sf::Vector2f(right, top);
-			vertexArray[(i * 6) + 5].position = sf::Vector2f(right, bottom);
-
-			if (sprites[i]->GetSpriteAsset() != nullptr)
+			vertexArrayMap[key] = sf::VertexArray(sf::PrimitiveType::Triangles, transforms.size() * 6);
+			sf::VertexArray& vertexArray = vertexArrayMap[key];
+			for (int i = 0; i < transforms.size(); i++)
 			{
-				const uei::SpriteAsset* spriteAsset = sprites[i]->GetSpriteAsset();
+				const sf::Vector2f p = transforms[i]->Position();
 
-				left = spriteAsset->X;
-				right = spriteAsset->X + spriteAsset->Width;
-				top = spriteAsset->Y;
-				bottom = spriteAsset->Y + spriteAsset->Height;
+				float left = p.x;
+				float right = p.x + engine.CurrentScene()->GridSize();
 
-				if (sprites[i]->FlipX())
-					std::swap(left, right);
+				float top = p.y;
+				float bottom = p.y + engine.CurrentScene()->GridSize();
 
-				if (sprites[i]->FlipY())
-					std::swap(top, bottom);
+				vertexArray[(i * 6) + 0].position = sf::Vector2f(left, top);
+				vertexArray[(i * 6) + 1].position = sf::Vector2f(right, top);
+				vertexArray[(i * 6) + 2].position = sf::Vector2f(left, bottom);
 
-				vertexArray[(i * 6) + 0].texCoords = { left,  top };
-				vertexArray[(i * 6) + 1].texCoords = { right, top };
-				vertexArray[(i * 6) + 2].texCoords = { left,  bottom };
+				vertexArray[(i * 6) + 3].position = sf::Vector2f(left, bottom);
+				vertexArray[(i * 6) + 4].position = sf::Vector2f(right, top);
+				vertexArray[(i * 6) + 5].position = sf::Vector2f(right, bottom);
 
-				vertexArray[(i * 6) + 3].texCoords = { left,  bottom };
-				vertexArray[(i * 6) + 4].texCoords = { right, top };
-				vertexArray[(i * 6) + 5].texCoords = { right, bottom };
+				CSprite* cSprite = sprites[i];
+				if (cSprite->GetSpriteAsset() != nullptr)
+				{
+					const uei::SpriteAsset* spriteAsset = cSprite->GetSpriteAsset();
+
+					left = spriteAsset->X;
+					right = spriteAsset->X + spriteAsset->Width;
+					top = spriteAsset->Y;
+					bottom = spriteAsset->Y + spriteAsset->Height;
+
+					if (cSprite->FlipX())
+						std::swap(left, right);
+
+					if (cSprite->FlipY())
+						std::swap(top, bottom);
+
+					vertexArray[(i * 6) + 0].texCoords = { left,  top };
+					vertexArray[(i * 6) + 1].texCoords = { right, top };
+					vertexArray[(i * 6) + 2].texCoords = { left,  bottom };
+
+					vertexArray[(i * 6) + 3].texCoords = { left,  bottom };
+					vertexArray[(i * 6) + 4].texCoords = { right, top };
+					vertexArray[(i * 6) + 5].texCoords = { right, bottom };
+				}
 			}
 		}
 
-		sf::RenderStates states;
-		states.texture = &engine.Assets()->GetTexture("pacman_map.png");
-		engine.RenderWindow().draw(vertexArray, states);
+		for (auto& [key, value] : vertexArrayMap)
+		{
+			sf::RenderStates states;
+
+			if(key.substr(0, 2) == STATIC)
+				states.texture = &engine.Assets()->GetTexture(key.substr(2, key.length() - 2));
+			else 
+				states.texture = &engine.Assets()->GetTexture(key);
+
+			engine.RenderWindow().draw(value, states);
+		}
 	}
 }

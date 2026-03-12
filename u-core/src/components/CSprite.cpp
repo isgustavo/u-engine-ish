@@ -8,28 +8,15 @@
 
 namespace uei
 {
-	CSprite::CSprite() : UComponent(), spriteAsset(nullptr), bFlipX(false), bFlipY(false)
+	CSprite::CSprite() : UComponent(), bFlipX(false), bFlipY(false)
 	{
-		//sprite = nullptr;
-		//bFlipX = false;
-		//bFlipY = false;
+
 	}
 
-	//CSprite::CSprite(std::string inSpriteName, bool inFlipX, bool inFlipY) : UComponent()
-	CSprite::CSprite(const SpriteAsset* inSpriteAsset, bool inFlipX, bool inFlipY) : UComponent(),
-		spriteAsset(new SpriteAsset(inSpriteAsset)), bFlipX(inFlipX), bFlipY(inFlipY)
+	CSprite::CSprite(SpriteAsset* inSpriteAsset, bool inFlipX, bool inFlipY) : UComponent(),
+		bFlipX(inFlipX), bFlipY(inFlipY)
 	{
-		//spriteName = inSpriteName;
-		//bFlipX = inFlipX;
-		//bFlipY = inFlipY;
-		//sprite = nullptr;
-	}
-
-	CSprite::CSprite(bool inFlipX, bool inFlipY) : UComponent(), bFlipX(false), bFlipY(false)
-	{
-		//sprite = nullptr;
-		//bFlipX = false;
-		//bFlipY = false;
+		SetSpriteAsset(inSpriteAsset);
 	}
 
 	CSprite::~CSprite()
@@ -43,14 +30,12 @@ namespace uei
 		delete spriteAsset;
 		spriteAsset = nullptr;
 
-		spriteAsset = inSpriteAsset;
+		if (inSpriteAsset != nullptr)
+		{
+			spriteAsset = inSpriteAsset;
+			SetDirty(true);
+		}
 	}
-
-	//void CSprite::SetScale(int gridSize)
-	//{
-	//	sprite->setScale(sf::Vector2f((bFlipX ? -1 : 1) * (gridSize / sprite->getTextureRect().size.x), 
-	//		(bFlipY ? -1 : 1) * gridSize / sprite->getTextureRect().size.y));
-	//}
 
 	void CSprite::OnShowEditor(UEngine& engine)
 	{
@@ -150,10 +135,8 @@ namespace uei
 		
 		in >> spriteName >> flipX >> flipY;
 		
-		if (spriteName != EMPTY)
-		{
-			spriteAsset = new SpriteAsset(&engine.Assets()->GetSpriteAsset(spriteName));
-		}
+		SetSpriteAsset(spriteName != EMPTY ? new SpriteAsset(&engine.Assets()->GetSpriteAsset(spriteName)) : nullptr);
+
 		bFlipX = flipX == "1" ? true : false;
 		bFlipY = flipY == "1" ? true : false;
 	}

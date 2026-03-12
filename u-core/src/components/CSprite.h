@@ -22,13 +22,12 @@ namespace uei
 		SpriteAsset* GetSpriteAsset() { return spriteAsset; }
 		bool FlipX() const { return bFlipX; }
 		bool FlipY() const { return bFlipY; }
+		bool IsDirty() const { return bIsDirty; }
+		void SetDirty(bool value) { bIsDirty = value; }
 
 		UComponent* Clone() const override
 		{
-			if(spriteAsset != nullptr)
-				return new CSprite(spriteAsset, bFlipX, bFlipY);
-			else 
-				return new CSprite(bFlipX, bFlipY);
+			return new CSprite(spriteAsset, bFlipX, bFlipY);
 		}
 
 		inline std::string ComponentName() const override { return "CSprite"; }
@@ -41,11 +40,11 @@ namespace uei
 		int GetEditorSize(UEngine& engine) const override;
 
 	private:
-		CSprite(const SpriteAsset* inSpriteAsset, bool inFlipX, bool inFlipY);
-		CSprite(bool inFlipX, bool inFlipY);
+		CSprite(SpriteAsset* inSpriteAsset, bool inFlipX, bool inFlipY);
 
 		SpriteAsset* spriteAsset;
 		bool bFlipX, bFlipY;
+		bool bIsDirty;
 		//sf::Sprite* sprite;
 
 		void OnComponentAdd(UEntity& entity) override;

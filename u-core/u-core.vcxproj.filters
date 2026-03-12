@@ -99,9 +99,6 @@
     <ClCompile Include="src\UGameScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\systems\SStaticDrawSystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\components\CStaticDraw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -537,9 +534,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\UGameScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\systems\SStaticDrawSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\components\CStaticDraw.h">
