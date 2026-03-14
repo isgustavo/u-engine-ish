@@ -8,43 +8,47 @@
 
 namespace uei
 {
-	SAnimationSystem::SAnimationSystem() : USystem(), currentAnimationDeltaTime(0.0f)
+	SAnimationSystem::SAnimationSystem() : USystem()
 	{
 
 	}
 
 	void SAnimationSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
 	{
-		currentAnimationDeltaTime += engine.DeltaTime();
 		for (auto& e : entities)
 		{
 			auto* cMovement = e->GetComponent<CMovement>();
 			auto* cIdleAnimation = e->GetComponent<CIdleAnimation>();
-			auto* cMovementAnimation = e->GetComponent<uei::CMovementAnimation>();
+			auto* cMovementAnimation = e->GetComponent<CMovementAnimation>();
 			auto* cSprite = e->GetComponent<uei::CSprite>();
 
 			if (cMovement == nullptr || cIdleAnimation == nullptr || cMovementAnimation == nullptr || cSprite == nullptr) continue;
 
-			if (cMovement->GetMovement() == EMovement::NONE)
+			cIdleAnimation->UpdateAnimationDeltaTime(engine.DeltaTime());
+			cMovementAnimation->UpdateAnimationDeltaTime(engine.DeltaTime());
+
+			const AnimationAsset* animationAsset = nullptr;
+			float animationDeltaTime;
+			if (cMovement->GetCurrentMovement() == EMovement::NONE)
 			{
-				if (cIdleAnimation->GetAnimationAsset() != nullptr)
-				{
-					cSprite->SetSpriteAsset(GetSprite(cIdleAnimation->GetAnimationAsset()));
-				}
+				animationAsset = cIdleAnimation->GetAnimationAsset();
+				animationDeltaTime = cIdleAnimation->GetCurrentAnimationDeltaTime();
 			}
 			else 
 			{
-				std::string animationName = cMovementAnimation->GetAnimation(cMovement->GetMovement());
-				const AnimationAsset* animationAsset = &engine.Assets()->GetAnimation(animationName);
-
-				cSprite->SetSpriteAsset(GetSprite(animationAsset));
+				std::string animationName = cMovementAnimation->GetAnimation(cMovement->GetCurrentMovement());	
+				animationAsset = &engine.Assets()->GetAnimationAsset(animationName);
+				animationDeltaTime = cMovementAnimation->GetCurrentAnimationDeltaTime();
 			}
+
+			if(animationAsset != nullptr)
+				cSprite->SetSpriteAsset(CreateAnimationSpriteAsset(animationAsset, animationDeltaTime));
 		}
 	}
 
-	SpriteAsset* SAnimationSystem::GetSprite(const AnimationAsset* animationAsset)
+	SpriteAsset* SAnimationSystem::CreateAnimationSpriteAsset(const AnimationAsset* animationAsset, const float deltaTime)
 	{
-		int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset->Speed) % animationAsset->Frame;
+		int currentAnimationFrame = (int)(deltaTime * animationAsset->Speed) % animationAsset->Frame;
 		int x = animationAsset->X + (currentAnimationFrame * animationAsset->Width);
 		return new SpriteAsset("", animationAsset->TextureName, x, animationAsset->Y, animationAsset->Width, animationAsset->Height);
 	}

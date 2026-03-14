@@ -9,22 +9,17 @@ namespace uei
 		CPlayer();
 		~CPlayer();
 
-		UComponent* Clone() const override
+		UComponent* Clone() override
 		{
 			return new CPlayer();
 		}
 
 		inline std::string ComponentName() const override { return "CPlayer"; }
 
-		void LoadComponent(class UEngine& engine, std::istream& in) override;
-		std::string Save() const override;
+		void LoadComponent(std::istream & in) override;
+		std::string SaveComponent() const override;
 
 	protected:
 		void OnShowEditor(class UEngine& engine) override;
-		int GetEditorSize(UEngine& engine) const override;
-
-	private:
-		void OnComponentAdd(UEntity& entity) override;
-		void OnComponentRemove(class UEntity& entity) override;
 	};
 }

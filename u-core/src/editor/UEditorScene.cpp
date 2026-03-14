@@ -1,12 +1,13 @@
 #include "UEditorScene.h"
 #include "UEditor.h"
+#include "components/CTransform.h"
+#include "components/CSprite.h"
+#include "components/CIdleAnimation.h"
+#include "systems/SDrawSystem.h"
+#include "systems/SAnimationSystem.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics.hpp>
-#include <components/CTransform.h>
-#include <components/CSprite.h>
-#include <components/CIdleAnimation.h>
-#include <systems/SDrawSystem.h>
 
 #include <unordered_map>
 #include <string>
@@ -14,8 +15,6 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <systems/SAnimationSystem.h>
-
 
 namespace uei
 {
@@ -128,7 +127,7 @@ namespace uei
             sprite.setScale(sf::Vector2f((flipX ? -1 : 1) * (gridSize / sprite.getTextureRect().size.x),
                 (flipY ? -1 : 1) * gridSize / sprite.getTextureRect().size.y));
 
-            sprite.setPosition(cTransform->Position());
+            sprite.setPosition(cTransform->GetPosition());
 
             engine.RenderWindow().draw(sprite);
         }
@@ -225,6 +224,7 @@ namespace uei
     {
         auto& allAsstTypes = engine.Assets()->AllAssetTypes();
         auto& allTexture = engine.Assets()->AllTextures();
+        //auto& allFonts = engine.Assets()->AllTextures();
 
         ImGui::Begin("New Asset");
         ImGui::Text("Name:");
@@ -245,6 +245,11 @@ namespace uei
                 {
                     engine.Assets()->AddAnimation(editorNameBuffer, engine.Assets()->AllTextures()[assetTextureSelectedIndex], newSpriteX, newSpriteY,
                         newSpriteWidth, newSpriteHeight, newAnimationFrame, newAnimationSpeed);
+                }
+                else if (allAsstTypes[assetTypeSelectedIndex] == FONT)
+                {
+                    //engine.Assets()->AddAnimation(editorNameBuffer, engine.Assets()->AllTextures()[assetTextureSelectedIndex], newSpriteX, newSpriteY,
+                    //    newSpriteWidth, newSpriteHeight, newAnimationFrame, newAnimationSpeed);
                 }
                 engine.Assets()->Save();
                 ClearEditor();
@@ -358,6 +363,16 @@ namespace uei
                             newAnimationSpeed, newAnimationFrame);
                     }
                 }
+                /*else if (allAsstTypes[assetTypeSelectedIndex] == FONT)
+                {
+                    ImGui::Text("Speed");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(60);
+                    ImGui::InputFloat("##AddNewSpeed", &newAnimationSpeed, 0);
+                    ImGui::PopItemWidth();
+
+                    AddFont(allTexture[assetTextureSelectedIndex], newSpriteX, newSpriteY, newSpriteWidth, newSpriteHeight, false, false);
+                }*/
             }
         }
 
@@ -394,7 +409,7 @@ namespace uei
         {
             ImGui::PushID(key.c_str());
 
-            AddImGui(&engine.Assets()->GetAnimation(value.AssetName), thumbnailSize);
+            AddImGui(&engine.Assets()->GetAnimationAsset(value.AssetName), thumbnailSize);
 
             ImGui::TextWrapped("%s", value.AssetName.c_str());
             if (ImGui::Button("Remove"))
@@ -563,6 +578,12 @@ namespace uei
             CSprite* cSprite = value->GetComponent<CSprite>();
             if (cIdleAnimation != nullptr)
             {
+                if (cIdleAnimation->GetAnimationAsset() == nullptr &&
+                    cIdleAnimation->GetAnimationName() != EMPTY)
+                {
+                    cIdleAnimation->SetAnimationAsset(new AnimationAsset(engine.Assets()->GetAnimationAsset(cIdleAnimation->GetAnimationName())));
+                }
+
                 if (cIdleAnimation->GetAnimationAsset() != nullptr)
                 {
                     AddImGui(cIdleAnimation->GetAnimationAsset());
@@ -571,6 +592,12 @@ namespace uei
             }
             else if (cSprite != nullptr)
             {
+                if (cSprite->GetSpriteAsset() == nullptr &&
+                    cSprite->GetSpriteName() != EMPTY)
+                {
+                    cSprite->SetSpriteAsset(new SpriteAsset(engine.Assets()->GetSpriteAsset(cSprite->GetSpriteName())));
+                }
+
                 if (cSprite->GetSpriteAsset() != nullptr)
                 {
                     AddImGui(cSprite->GetSpriteAsset(), cSprite->FlipX(), cSprite->FlipY());
@@ -718,7 +745,7 @@ namespace uei
             {
                 CTransform* transform = e->GetComponent<CTransform>();
                 if (transform == nullptr) continue;
-                content += ENTITY + " " + e->Name() + " " + std::to_string(transform->Position().x) + " " + std::to_string(transform->Position().y) + "\n";
+                content += ENTITY + " " + e->Name() + " " + std::to_string(transform->GetPosition().x) + " " + std::to_string(transform->GetPosition().y) + "\n";
             }
 
             std::ofstream out(levelPath);
@@ -775,8 +802,8 @@ namespace uei
                 CTransform* transform = e.get()->GetComponent<CTransform>();
                 if (transform != nullptr)
                 {
-                    if (transform->Position().x == gridMousePosition.x &&
-                        transform->Position().y == gridMousePosition.y)
+                    if (transform->GetPosition().x == gridMousePosition.x &&
+                        transform->GetPosition().y == gridMousePosition.y)
                     {
                         e.get()->SetActive(false);
                         break;

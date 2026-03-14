@@ -1,81 +1,68 @@
 #pragma once
 #include "UComponent.h"
-#include "UAsset.h"
+#include "CMovementAnimation.h"
+
 #include <istream>
+
+enum EGrid
+{
+	GRID_4,
+	GRID_8
+};
+
+inline std::string GridToString(EGrid grid)
+{
+	switch (grid)
+	{
+	case EGrid::GRID_4:
+		return "4-Side-GRID";
+	case EGrid::GRID_8:
+		return "8-Side-GRID";
+	}
+}
+
+inline EGrid StringToGrid(std::string grid)
+{
+	if (grid == "4-Side-GRID")
+		return EGrid::GRID_4;
+	if (grid == "8-Side-GRID")
+		return EGrid::GRID_8;
+	return EGrid::GRID_4;
+}
 
 namespace uei
 {
-	enum EGrid
-	{
-		GRID_4,
-		GRID_8
-	};
-
-	inline std::string GridToString(EGrid grid)
-	{
-		switch (grid)
-		{
-		case EGrid::GRID_4:
-			return "4-Side-GRID";
-		case EGrid::GRID_8:
-			return "8-Side-GRID";
-		}
-	}
-
-	inline EGrid StringToGrid(std::string grid)
-	{
-		if (grid == "4-Side-GRID")
-			return EGrid::GRID_4;
-		if (grid == "8-Side-GRID")
-			return EGrid::GRID_8;
-		return EGrid::GRID_4;
-	}
-
 	class CMovement : public UComponent
 	{
 	public:
 		CMovement();
 		~CMovement();
 
-		UComponent* Clone() const override
-		{
-			auto* m = new CMovement();
-			m->movementIndex = movementIndex;
-			return m;
-		}
-
-		EGrid GridMovement() { return gridMovement; }
-		EMovement GetMovement() { return currentMovement; }
-		void SetMovement(EMovement movement) { currentMovement = movement; }
+		EGrid GridMovement() const { return gridMovement; }
 		
-		inline std::string ComponentName() const override { return "CMovement"; }
-		int GetMovementIndex() { return movementIndex; }
+		EMovement GetCurrentMovement() const { return currentMovement; }
+		void SetCurrentMovement(EMovement movement) { currentMovement = movement; }
 
-		std::vector<std::string>& AllMovementTypes()
+		UComponent* Clone() override
 		{
-			if (allMovementTypesName.size() == 0)
-			{
-				allMovementTypesName.push_back(GridToString(EGrid::GRID_4));
-				allMovementTypesName.push_back(GridToString(EGrid::GRID_8));
-			}
-			return allMovementTypesName;
+			return new CMovement(gridMovement);
 		}
 
-		void LoadComponent(UEngine& engine, std::istream& in) override;
-		std::string Save() const override;
+		inline std::string ComponentName() const override { return "CMovement"; }
+		
+		void LoadComponent(std::istream & in) override;
+		std::string SaveComponent() const override;
 
 	protected:
 		void OnShowEditor(UEngine& engine) override;
-		int GetEditorSize(UEngine& engine) const override;
+		int GetEditorSize() const override;
 
 	private:
-		int movementIndex;
+		CMovement(EGrid inGridMovement);
+
 		std::vector<std::string> allMovementTypesName;
 
 		EGrid gridMovement;
 		EMovement currentMovement;
-
-		void OnComponentAdd(class UEntity& entity) override;
-		void OnComponentRemove(class UEntity& entity) override;
 	};
 }

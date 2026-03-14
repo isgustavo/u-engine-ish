@@ -80,7 +80,7 @@ namespace uei
 				file >> componentName;
 				if (componentName.empty()) continue;
 				auto* newComponent = UEditor::Create(componentName);
-				newComponent->LoadComponent(engine, file);
+				newComponent->LoadComponent(file);
 				prefab->AddComponent(newComponent);
 			}
 
@@ -120,7 +120,7 @@ namespace uei
 
 				for (const auto& [c_key, c_value] : value->Components())
 				{
-					content += COMPONENT + " " + c_value->ComponentName() + " " + c_value->Save() + "\n";
+					content += COMPONENT + " " + c_value->ComponentName() + " " + c_value->SaveComponent() + "\n";
 				}
 			}
 
@@ -205,7 +205,7 @@ namespace uei
 		auto it = spriteAssets.find(spriteName);
 		return it->second;
 	}
-	const uei::AnimationAsset& UAsset::GetAnimation(const std::string& animationName) const
+	const uei::AnimationAsset& UAsset::GetAnimationAsset(const std::string& animationName) const
 	{
 		auto it = animations.find(animationName);
 		return it->second;

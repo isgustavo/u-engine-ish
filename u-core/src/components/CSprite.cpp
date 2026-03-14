@@ -8,15 +8,17 @@
 
 namespace uei
 {
-	CSprite::CSprite() : UComponent(), bFlipX(false), bFlipY(false)
+	CSprite::CSprite() : UComponent(true), bFlipX(false), bFlipY(false)
 	{
-
+		spriteName = EMPTY;
 	}
 
-	CSprite::CSprite(SpriteAsset* inSpriteAsset, bool inFlipX, bool inFlipY) : UComponent(),
-		bFlipX(inFlipX), bFlipY(inFlipY)
+	CSprite::CSprite(std::string& inSpriteName, bool inFlipX, bool inFlipY) : CSprite()
 	{
-		SetSpriteAsset(inSpriteAsset);
+		spriteName = inSpriteName;
+		bFlipX = inFlipX;
+		bFlipY = inFlipY;
+		//SetSpriteAsset(inSpriteAsset);
 	}
 
 	CSprite::~CSprite()
@@ -25,12 +27,18 @@ namespace uei
 		spriteAsset = nullptr;
 	}
 
+	void CSprite::Start(UEngine& engine)
+	{
+		if (spriteName != EMPTY)
+			SetSpriteAsset(new SpriteAsset(&engine.Assets()->GetSpriteAsset(spriteName)));
+	}
+
 	void CSprite::SetSpriteAsset(SpriteAsset* inSpriteAsset)
 	{
 		delete spriteAsset;
 		spriteAsset = nullptr;
 
-		if (inSpriteAsset != nullptr)
+		//if (inSpriteAsset != nullptr)
 		{
 			spriteAsset = inSpriteAsset;
 			SetDirty(true);
@@ -39,7 +47,7 @@ namespace uei
 
 	void CSprite::OnShowEditor(UEngine& engine)
 	{
-		if (bIsRequiredByOtherComponent)
+		if (IsRequiredByOtherComponent())
 		{
 			return;
 		}
@@ -49,19 +57,20 @@ namespace uei
 
 		int selectedIndex = -1;
 
-		for (int i = 0; i < allSprites.size(); i++)
-		{
-			if (spriteAsset != nullptr)
-			{
-				if (allSprites[i] == spriteAsset->AssetName)
-				{
-					selectedIndex = i;
-					break;
-				}
-			}
-		}
+		//for (int i = 0; i < allSprites.size(); i++)
+		//{
+		//	if (spriteAsset != nullptr)
+		//	{
+		//		if (allSprites[i] == spriteAsset->AssetName)
+		//		{
+		//			selectedIndex = i;
+		//			break;
+		//		}
+		//	}
+		//}
 
-		if (ImGui::BeginCombo("##Sprite", (selectedIndex == -1) ? " " : allSprites[selectedIndex].c_str()))
+		//if (ImGui::BeginCombo("##Sprite", (selectedIndex == -1) ? " " : allSprites[selectedIndex].c_str()))
+		if (ImGui::BeginCombo("##Sprite", spriteName.c_str()))
 		{
 			for (int i = 0; i < allSprites.size(); ++i) {
 				const bool isSelected = (selectedIndex == i);
@@ -73,8 +82,8 @@ namespace uei
 					//	delete sprite;
 					//	sprite = nullptr;
 					//}
-					spriteAsset = new SpriteAsset(&assets->GetSpriteAsset(allSprites[i]));
-					//spriteName = spriteAsset.name;
+					auto& spriteAsset = assets->GetSpriteAsset(allSprites[i]);
+					spriteName = spriteAsset.AssetName;
 					//sprite = new sf::Sprite(assets->GetTexture(spriteAsset.textureName), sf::IntRect({ spriteAsset.x, spriteAsset.y }, { spriteAsset.width, spriteAsset.height }));
 					//spriteName = allSprites[i];
 				}
@@ -83,66 +92,60 @@ namespace uei
 		}
 
 		//if (sprite != nullptr)
-		if(spriteAsset != nullptr)
+		//if(spriteAsset != nullptr)
+		if(spriteName != EMPTY)
 		{
 			ImGui::Checkbox("FlipX", &bFlipX);
 			ImGui::SameLine();
 			ImGui::Checkbox("FlipY", &bFlipY);
 
 			//uei::SpriteAsset spriteAsset = assets->GetSpriteAsset(spriteAsset->SpriteName);
-			sf::Sprite sprite = sf::Sprite(assets->GetTexture(spriteAsset->TextureName),
-				sf::IntRect({ spriteAsset->X, spriteAsset->Y }, { spriteAsset->Width, spriteAsset->Height }));
+			auto& spriteAsset = assets->GetSpriteAsset(spriteName);
+			sf::Sprite sprite = sf::Sprite(assets->GetTexture(spriteAsset.TextureName),
+				sf::IntRect({ spriteAsset.X, spriteAsset.Y }, { spriteAsset.Width, spriteAsset.Height }));
 
 			ImTextureID id = (ImTextureID)(intptr_t)sprite.getTexture().getNativeHandle();
 			sf::Vector2u size = sprite.getTexture().getSize();
 
 			ImGui::Spacing();
-			ImGui::Text(spriteAsset->AssetName.c_str());
+			ImGui::Text(spriteName.c_str());
 			ImGui::Spacing();
 
 			ImVec2 uv0(
-				bFlipX ? (float)(spriteAsset->X + spriteAsset->Width) / size.x : (float)spriteAsset->X / size.x,
-				bFlipY ? (float)(spriteAsset->Y + spriteAsset->Height) / size.y : (float)spriteAsset->Y / size.y
+				bFlipX ? (float)(spriteAsset.X + spriteAsset.Width) / size.x : (float)spriteAsset.X / size.x,
+				bFlipY ? (float)(spriteAsset.Y + spriteAsset.Height) / size.y : (float)spriteAsset.Y / size.y
 			);
 
 			ImVec2 uv1(
-				bFlipX ? (float)spriteAsset->X / size.x : (float)(spriteAsset->X + spriteAsset->Width) / size.x,
-				bFlipY ? (float)spriteAsset->Y / size.y : (float)(spriteAsset->Y + spriteAsset->Height) / size.y
+				bFlipX ? (float)spriteAsset.X / size.x : (float)(spriteAsset.X + spriteAsset.Width) / size.x,
+				bFlipY ? (float)spriteAsset.Y / size.y : (float)(spriteAsset.Y + spriteAsset.Height) / size.y
 			);
 
 			ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
 		}
 	}
 
-	int CSprite::GetEditorSize(UEngine& engine) const
+	int uei::CSprite::GetEditorSize() const
 	{
-		return bIsRequiredByOtherComponent ? 33 : 180 + engine.CurrentScene()->GridSize();
+		return IsRequiredByOtherComponent() ? 33 : 200;
 	}
 
-	void CSprite::OnComponentAdd(UEntity& entity) 
-	{ 
-	}
-
-	void CSprite::OnComponentRemove(UEntity& entity) 
-	{ 
-	}
-
-	void uei::CSprite::LoadComponent(UEngine& engine, std::istream& in)
+	void uei::CSprite::LoadComponent(std::istream& in)
 	{
 		std::string flipX;
 		std::string flipY;
-		std::string spriteName;
-		
-		in >> spriteName >> flipX >> flipY;
-		
-		SetSpriteAsset(spriteName != EMPTY ? new SpriteAsset(&engine.Assets()->GetSpriteAsset(spriteName)) : nullptr);
+		//std::string spriteName;
+		//in >> spriteName >> flipX >> flipY;
+		//SetSpriteAsset(spriteName != EMPTY ? new SpriteAsset(&engine.Assets()->GetSpriteAsset(spriteName)) : nullptr);
 
+		Deserialize(in, spriteName, flipX, flipY);
 		bFlipX = flipX == "1" ? true : false;
 		bFlipY = flipY == "1" ? true : false;
 	}
 
-	std::string CSprite::Save() const
+	std::string CSprite::SaveComponent() const
 	{
-		return (spriteAsset == nullptr ? EMPTY : spriteAsset->AssetName) + " " + (bFlipX ? "1" : "0") + " " + (bFlipY ? "1" : "0");
+		return Serialize(spriteName, bFlipX ? "1" : "0", bFlipY ? "1" : "0");
+		//return (spriteAsset == nullptr ? EMPTY : spriteAsset->AssetName) + " " + (bFlipX ? "1" : "0") + " " + (bFlipY ? "1" : "0");
 	}
 }

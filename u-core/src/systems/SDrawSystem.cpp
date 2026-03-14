@@ -8,6 +8,14 @@ namespace uei
 {
 	SDrawSystem::SDrawSystem()
 	{
+
+	}
+
+	SDrawSystem::~SDrawSystem()
+	{
+		vertexArrayMap.clear();
+		transformMap.clear();
+		spriteMap.clear();
 	}
 
 	void SDrawSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
@@ -28,6 +36,8 @@ namespace uei
 			if (cTransform == nullptr || cSprite == nullptr) continue;
 
 			const SpriteAsset* spriteAsset = cSprite->GetSpriteAsset();
+			if (spriteAsset == nullptr) continue;
+
 			const std::string& key = (cStaticDraw != nullptr ? STATIC : "") + spriteAsset->TextureName;
 
 			if (cSprite->IsDirty())
@@ -53,7 +63,7 @@ namespace uei
 			sf::VertexArray& vertexArray = vertexArrayMap[key];
 			for (int i = 0; i < transforms.size(); i++)
 			{
-				const sf::Vector2f p = transforms[i]->Position();
+				const sf::Vector2f p = transforms[i]->GetPosition();
 
 				float left = p.x;
 				float right = p.x + engine.CurrentScene()->GridSize();
@@ -72,7 +82,7 @@ namespace uei
 				CSprite* cSprite = sprites[i];
 				if (cSprite->GetSpriteAsset() != nullptr)
 				{
-					const uei::SpriteAsset* spriteAsset = cSprite->GetSpriteAsset();
+					const SpriteAsset* spriteAsset = cSprite->GetSpriteAsset();
 
 					left = spriteAsset->X;
 					right = spriteAsset->X + spriteAsset->Width;

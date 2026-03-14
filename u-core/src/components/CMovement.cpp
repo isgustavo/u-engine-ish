@@ -1,29 +1,42 @@
 #include "CMovement.h"
+#include "CMovementAnimation.h"
+
 #include <imgui.h>
 #include <sstream>
 #include <iostream>
 
+
 namespace uei
 {
-	CMovement::CMovement() : UComponent(), movementIndex(0)
+	CMovement::CMovement() : UComponent()
 	{
+		allMovementTypesName.push_back(GridToString(EGrid::GRID_4));
+		allMovementTypesName.push_back(GridToString(EGrid::GRID_8));
+
 		currentMovement = EMovement::NONE;
+	}
+
+	CMovement::CMovement(EGrid inGridMovement) : CMovement()
+	{
+		gridMovement = inGridMovement;
 	}
 
 	CMovement::~CMovement()
 	{
+
 	}
 
 	void CMovement::OnShowEditor(UEngine& engine)
 	{
+		std::string gridMovementName = GridToString(gridMovement);
 		ImGui::PushItemWidth(260);
-		if (ImGui::BeginCombo("##MovementCombo", AllMovementTypes()[movementIndex].c_str()))
+		if (ImGui::BeginCombo("##MovementCombo", gridMovementName.c_str()))
 		{
-			for (int i = 0; i < AllMovementTypes().size(); ++i)
+			for (int i = 0; i < allMovementTypesName.size(); ++i)
 			{
-				if (ImGui::Selectable(AllMovementTypes()[i].c_str()))
+				if (ImGui::Selectable(allMovementTypesName[i].c_str()))
 				{
-					movementIndex = i;
+					gridMovement = StringToGrid(allMovementTypesName[i]);
 				}
 			}
 			ImGui::EndCombo();
@@ -31,29 +44,20 @@ namespace uei
 		ImGui::PopItemWidth();
 	}
 
-	int CMovement::GetEditorSize(UEngine& engine) const
+	int uei::CMovement::GetEditorSize() const
 	{
 		return 66;
 	}
 	
-	void CMovement::OnComponentAdd(UEntity& entity)
+	void uei::CMovement::LoadComponent(std::istream& in)
 	{
+		std::string a0;
+		Deserialize(in, a0);
+		gridMovement = StringToGrid(a0);
 	}
 	
-	void CMovement::OnComponentRemove(UEntity& entity)
+	std::string CMovement::SaveComponent() const
 	{
-	}
-	
-	void CMovement::LoadComponent(UEngine& engine, std::istream& in)
-	{
-		in >> movementIndex;
-		gridMovement = StringToGrid(AllMovementTypes()[movementIndex]);
-	}
-	
-	std::string CMovement::Save() const
-	{
-		std::ostringstream ss;
-		ss << movementIndex;
-		return ss.str();
+		return Serialize(GridToString(gridMovement));
 	}
 }

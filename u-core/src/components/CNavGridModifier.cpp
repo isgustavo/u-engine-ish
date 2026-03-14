@@ -1,26 +1,39 @@
 #include "CNavGridModifier.h"
+
 #include <imgui.h>
 #include <iostream>
 #include <sstream>
 
 namespace uei
 {
+	CNavGridModifier::CNavGridModifier() : UComponent()
+	{
+
+	}
+
 	CNavGridModifier::CNavGridModifier(int inStartColumn, int inColumns, int inStartRow, int inRows, int inWeight) : UComponent(),
 		startColumn(inStartColumn), columns(inColumns), startRow(inStartRow), rows(inRows), weight(inWeight)
 	{
 
 	}
 
-	void CNavGridModifier::LoadComponent(UEngine& engine, std::istream& in)
+	CNavGridModifier::~CNavGridModifier()
 	{
-		in >> startColumn >> columns >> startRow >> rows >> weight;
+
 	}
 
-	std::string CNavGridModifier::Save() const
+	void uei::CNavGridModifier::LoadComponent(std::istream & in)
 	{
-		std::stringstream ss;
+		Deserialize(in, startColumn, columns, startRow, rows, weight);
+		//in >> startColumn >> columns >> startRow >> rows >> weight;
+	}
+
+	std::string CNavGridModifier::SaveComponent() const
+	{
+		return Serialize(startColumn, columns, startRow, rows, weight);
+		/*std::stringstream ss;
 		ss << startColumn << " " << columns << " " << startRow << " " << rows << " " << weight;
-		return ss.str();
+		return ss.str();*/
 	}
 
 	void CNavGridModifier::OnShowEditor(UEngine& engine)
@@ -60,18 +73,8 @@ namespace uei
 		ImGui::PopItemWidth();
 	}
 
-	int CNavGridModifier::GetEditorSize(UEngine& engine) const
+	int uei::CNavGridModifier::GetEditorSize() const
 	{
 		return 120;
 	}
-
-	void CNavGridModifier::OnComponentAdd(UEntity& entity)
-	{
-	}
-
-	void CNavGridModifier::OnComponentRemove(UEntity& entity)
-	{
-	}
-
-
 }

@@ -19,46 +19,48 @@ namespace uei
 
 			if (cTransform == nullptr || cMovement == nullptr) continue;
 
-			cMovement->SetMovement(EMovement::NONE);
+			EMovement movement = EMovement::NONE;
 
 			if (cTransform->IsMoving())
 			{
-				if (cTransform->Position().x > cTransform->PositionLastUpdate().x)
+				if (cTransform->GetPosition().x > cTransform->GetPositionLastUpdate().x)
 				{
-					cMovement->SetMovement(EMovement::RIGHT);
-					SetDiagonalMovement(cTransform, cMovement);
+					movement = EMovement::RIGHT;
+					SetDiagonalMovement(cTransform, cMovement, movement);
 				}
-				else if (cTransform->Position().x < cTransform->PositionLastUpdate().x)
+				else if (cTransform->GetPosition().x < cTransform->GetPositionLastUpdate().x)
 				{
-					cMovement->SetMovement(EMovement::LEFT);
-					SetDiagonalMovement(cTransform, cMovement);
+					movement = EMovement::LEFT;
+					SetDiagonalMovement(cTransform, cMovement, movement);
 				}
 				else 
 				{
-					if (cTransform->Position().y > cTransform->PositionLastUpdate().y)
+					if (cTransform->GetPosition().y > cTransform->GetPositionLastUpdate().y)
 					{
-						cMovement->SetMovement(EMovement::UP);
+						movement = EMovement::UP;
 					}
-					else if (cTransform->Position().y < cTransform->PositionLastUpdate().y)
+					else if (cTransform->GetPosition().y < cTransform->GetPositionLastUpdate().y)
 					{
-						cMovement->SetMovement(EMovement::DOWN);
+						movement = EMovement::DOWN;
 					}
 				}
 			}
+
+			cMovement->SetCurrentMovement(movement);
 		}
 	}
 
-	void SMovementSystem::SetDiagonalMovement(CTransform* transform, CMovement* movement)
+	void SMovementSystem::SetDiagonalMovement(CTransform* ctransform, CMovement* cMovement, EMovement& movement)
 	{
-		if (movement->GridMovement() == EGrid::GRID_8)
+		if (cMovement->GridMovement() == EGrid::GRID_8)
 		{
-			if (transform->Position().y > transform->PositionLastUpdate().y)
+			if (ctransform->GetPosition().y > ctransform->GetPositionLastUpdate().y)
 			{
-				movement->SetMovement(movement->GetMovement() == EMovement::RIGHT ? EMovement::UP_RIGHT : EMovement::UP_LEFT);
+				movement = (movement == EMovement::RIGHT) ? EMovement::UP_RIGHT : EMovement::UP_LEFT;
 			}
-			else if (transform->Position().y < transform->PositionLastUpdate().y)
+			else if (ctransform->GetPosition().y < ctransform->GetPositionLastUpdate().y)
 			{
-				movement->SetMovement(movement->GetMovement() == EMovement::RIGHT ? EMovement::DOWN_RIGHT : EMovement::DOWN_LEFT);
+				movement = (movement == EMovement::RIGHT) ? EMovement::DOWN_RIGHT : EMovement::DOWN_LEFT;
 			}
 		}
 	}

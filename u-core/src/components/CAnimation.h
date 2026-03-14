@@ -11,24 +11,12 @@ namespace uei
 	{
 	public:
 		CAnimation();
-		CAnimation(const sf::Texture& inTexture, const int inFrameCount, const float inAnimationSpeed,
-			const int inFrameWidth, const int inFrameHeight, const sf::Vector2f inScale);
+		~CAnimation();
 
-		//std::unique_ptr<UComponent> Clone() const override
-		//{
-		//	return std::make_unique<CAnimation>(this->);
-		//}
+		float GetCurrentAnimationDeltaTime() const { return currentAnimationDeltaTime; }
+		void UpdateAnimationDeltaTime(float deltaTime) { currentAnimationDeltaTime += deltaTime; }
 
-		void Update();
-		sf::Sprite& CurrentSprite() { return *currentSprite.get(); }
-
-	private:
-		const int frameCount;
-		const float animationSpeed;
-		const sf::Vector2i frameSize;
-		std::shared_ptr<sf::Sprite> currentSprite;
-
-		int currentGameFrame;
-		int currentAnimationFrame;	
+	protected:
+		float currentAnimationDeltaTime = 0.f;
 	};
 }

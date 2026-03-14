@@ -11,11 +11,12 @@ namespace uei
 	{
 	}
 
-	void CStaticDraw::LoadComponent(UEngine& engine, std::istream& in)
+	void uei::CStaticDraw::LoadComponent(std::istream& in)
 	{
+
 	}
 
-	std::string CStaticDraw::Save() const
+	std::string CStaticDraw::SaveComponent() const
 	{
 		return std::string();
 	}
@@ -31,18 +32,5 @@ namespace uei
 		//{
 		//	batchName = std::string(editorNameBuffer);
 		//}
-	}
-
-	int CStaticDraw::GetEditorSize(UEngine& engine) const
-	{
-		return 33;
-	}
-
-	void CStaticDraw::OnComponentAdd(UEntity& entity)
-	{
-	}
-
-	void CStaticDraw::OnComponentRemove(UEntity& entity)
-	{
 	}
 }

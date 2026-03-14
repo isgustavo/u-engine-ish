@@ -7,102 +7,64 @@
 
 namespace uei 
 {
-    CTransform::CTransform() : UComponent() 
+    CTransform::CTransform() : UComponent(false) 
     {
-        bCanRemove = false;
+
     }
 
-    CTransform::CTransform(const sf::Vector2f& inPosition/*, sf::Vector2f& inInitialVelocity*/) : UComponent(), bUpdate(true)/*, velocity(inInitialVelocity)*/
-    {
-        InitPosition(inPosition);
-        bCanRemove = false;
-    }
-
-    //void CTransform::Update(const float deltaTime)
-    //{
-    //    SetPosition(position + (velocity * deltaTime));
-    //}
-    sf::Vector2f& CTransform::Position()
-    {
-        return position;
-    }
-    sf::Vector2f& CTransform::PositionLastUpdate()
-    {
-        return positionLastUpdate;
-    }
-    void CTransform::InitPosition(const sf::Vector2f& inPosition)
+    CTransform::CTransform(const sf::Vector2f& inPosition) : CTransform()
     {
         positionLastUpdate = inPosition;
         position = inPosition;
     }
+
+    CTransform::~CTransform()
+    {
+
+    }
+
+    sf::Vector2f& uei::CTransform::GetPosition()
+    {
+        return position;
+    }
+
+    sf::Vector2f& uei::CTransform::GetPositionLastUpdate()
+    {
+        return positionLastUpdate;
+    }
+
     void CTransform::SetPosition(const sf::Vector2f& inPosition)
     {
         positionLastUpdate = position;
         position = inPosition;
-        bUpdate = positionLastUpdate == inPosition;
     }
-    bool CTransform::IsMoving(const float threshould)
+
+    bool CTransform::IsMoving(const float threshould) const
     {
         sf::Vector2f delta = position - positionLastUpdate;
         return (delta.x * delta.x + delta.y * delta.y) > threshould * threshould;
     }
-    /*void CTransform::SetVelocity(const sf::Vector2f& inVelocity)
-    {
-        velocity = inVelocity;
-    }*/
 
-    bool CTransform::ShouldUpdate() const
-    {
-        return bUpdate;
-    }
-    //void CTransform::ShowEditor(UEngine& inEngine, std::function<void()> onRemove)
-    //{
-    //    ImGui::BeginChild(
-    //        "Transform",
-    //        ImVec2(0, 33),
-    //        true
-    //    );
-    //    ImGui::Text("CTransform");
-    //    //if (!bIsNew)
-    //    //{
-    //    //    float pos[2] = { position.x, position.y };
-    //    //    ImGui::Text("Position");
-    //    //    ImGui::SameLine();
-    //    //    if (ImGui::InputFloat2("##t001", pos))
-    //    //    {
-    //    //        position = { pos[0], pos[1] };
-    //    //    }
-    //    //}
-    //    ImGui::EndChild();
-    //    ImGui::Spacing();
-    //}
     void CTransform::OnShowEditor(UEngine& engine)
     {
 
     }
-    int CTransform::GetEditorSize(UEngine& engine) const
+    
+    void uei::CTransform::LoadComponent(std::istream & in)
     {
-        return 33;
-    }
-    void CTransform::OnComponentAdd(UEntity& entity)
-    {
-    }
-    void CTransform::OnComponentRemove(UEntity& entity)
-    {
-    }
-    void uei::CTransform::LoadComponent(UEngine& engine, std::istream& in)
-    {
-        float x, y;
-        in >> x >> y;
-        position = sf::Vector2f(x, y);
-        positionLastUpdate = sf::Vector2f(x, y);
-    }
-    std::string CTransform::Save() const
-    {
-        std::ostringstream ss;
-        ss << position.x << " " << position.y;
-        return ss.str();
+        //float x, y;
+        //in >> x >> y;
+        //position = sf::Vector2f(x, y);
+        Deserialize(in, position.x, position.y);
+        positionLastUpdate = position;
     }
 
+    std::string CTransform::SaveComponent() const
+    {
+        //std::ostringstream ss;
+        //ss << position.x << " " << position.y;
+        //return ss.str();
+        return Serialize(position.x, position.y);
+    }
 }
 

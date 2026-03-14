@@ -1,42 +1,44 @@
 #pragma once
-#include "UComponent.h"
+#include "CAnimation.h"
 #include "UAsset.h"
 
 namespace uei 
 {
-	class CIdleAnimation : public UComponent
+	class CIdleAnimation : public CAnimation
 	{
 	public:
 		CIdleAnimation();
 		~CIdleAnimation();
 
-		//std::string GetIdleAnimationName() { return idleAnimationName; }
+		std::string GetAnimationName() { return animationName; }
 		AnimationAsset* GetAnimationAsset() { return animationAsset; }
-		uei::SpriteAsset GetCurrentAnimataionFrame(float deltaTime);
+		void SetAnimationAsset(AnimationAsset* inAnimationAsset) { animationAsset = inAnimationAsset; }
+		//SpriteAsset GetCurrentAnimataionFrame(float deltaTime);
 
-		UComponent* Clone() const override
+		UComponent* Clone() override
 		{
-			return new CIdleAnimation(animationAsset);
+			return new CIdleAnimation(animationName);
 		}
+		
+		virtual void Start(UEngine& engine) override;
 
 		inline std::string ComponentName() const override { return "CIdleAnimation"; }
 
-		void LoadComponent(UEngine& engine, std::istream& in) override;
-		std::string Save() const override;
+		void LoadComponent(std::istream & in) override;
+		std::string SaveComponent() const override;
 
 	protected:
 		void OnShowEditor(UEngine& inEngine) override;
-		int GetEditorSize(UEngine& engine) const override;
-
-	private:
-		CIdleAnimation(AnimationAsset* inAnimationAsset);
-
-		AnimationAsset* animationAsset;
-		//std::string idleAnimationName;
-
-		float currentAnimationDeltaTime = 0.f;
+		int GetEditorSize() const override;
 
 		virtual void OnComponentAdd(UEntity& entity) override;
 		virtual void OnComponentRemove(UEntity& entity) override;
+
+	private:
+		CIdleAnimation(std::string inAnimationName);
+
+		AnimationAsset* animationAsset;
+
+		std::string animationName;
 	};
 }

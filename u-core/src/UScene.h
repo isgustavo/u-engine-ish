@@ -27,6 +27,14 @@ namespace uei
 		~UScene();
 
 		template<typename T, typename... Args>
+		void AddStartSystem(Args&&... args)
+		{
+			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
+
+			startSystems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+		}
+
+		template<typename T, typename... Args>
 		void AddSystem(Args&&... args)
 		{
 			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
@@ -63,6 +71,7 @@ namespace uei
 		sf::View view;
 
 		std::vector<std::unique_ptr<uei::UEntity>> entities;
+		std::vector<std::unique_ptr<uei::USystem>> startSystems;
 		std::vector<std::unique_ptr<uei::USystem>> systems;
 		std::vector<std::unique_ptr<uei::USystem>> drawSystems;
 		std::vector<int> navGrid;
@@ -88,6 +97,7 @@ namespace uei
 
 		bool bIsPause;
 		bool bIsStarted = false;
+		bool bIsLoaded = false;
 		bool bIsNavGridDirty = false;
 		
 

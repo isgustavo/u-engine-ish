@@ -7,6 +7,7 @@ namespace uei
     {
     public:
         SDrawSystem();
+        ~SDrawSystem();
 
         virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
     

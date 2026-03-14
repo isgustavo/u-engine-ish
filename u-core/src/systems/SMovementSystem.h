@@ -1,5 +1,6 @@
 #pragma once
 #include "USystem.h"
+#include "components/CMovementAnimation.h"
 
 namespace uei
 {
@@ -11,6 +12,6 @@ namespace uei
         virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
 
     private:
-        void SetDiagonalMovement(class CTransform* transform, class CMovement* movement);
+        void SetDiagonalMovement(class CTransform* ctransform, class CMovement* cMovement, EMovement& movement);
     };
 }

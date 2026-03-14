@@ -1,12 +1,24 @@
 #include "UComponent.h"
+
 #include <istream>
 #include <imgui.h>
 
 namespace uei
 {
-    UComponent::UComponent() 
-        : bCanRemove(true), bIsRequiredByOtherComponent(false), requiredByOtherComponent(0)
+    UComponent::UComponent(bool canRemove)
+        : bCanRemove(canRemove), requiredByOtherComponent(0)
+    {
+
+    }
+
+    void UComponent::Start(UEngine& engine)
+    {
+
+    }
+
+    bool UComponent::IsRequiredByOtherComponent() const
     { 
+        return requiredByOtherComponent > 0; 
     }
 
     void UComponent::SetRequiredByOtherComponent(bool value)
@@ -17,12 +29,9 @@ namespace uei
         }
         else 
         {
-            requiredByOtherComponent--;
-            if (requiredByOtherComponent < 0)
-                requiredByOtherComponent = 0;
+            if(requiredByOtherComponent > 1)
+                requiredByOtherComponent--;
         }
-
-        bIsRequiredByOtherComponent = requiredByOtherComponent > 0;
     }
 
     void UComponent::ShowEditor(class UEngine& engine, std::function<void()> onRemove)
@@ -31,12 +40,12 @@ namespace uei
         std::string id = "##" + name;
         ImGui::BeginChild(
             id.c_str(),
-            ImVec2(0, GetEditorSize(engine)),
+            ImVec2(0, GetEditorSize()),
             true
         );
 
         ImGui::Text(name.c_str());
-        if (!bIsRequiredByOtherComponent)
+        if (!IsRequiredByOtherComponent())
         {
             if (bCanRemove)
             {

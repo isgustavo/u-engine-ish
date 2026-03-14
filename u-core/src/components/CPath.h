@@ -19,18 +19,18 @@ namespace uei
 
 		const std::vector<sf::Vector2i>& Path() const;
 
-		UComponent* Clone() const override
+		UComponent* Clone() override
 		{
 			return new CPath();
 		}
 		inline virtual std::string ComponentName() const override { return "CPath"; }
 
-		virtual void LoadComponent(UEngine& engine, std::istream& in) override;
-		virtual std::string Save() const override;
+		virtual void LoadComponent(std::istream & in) override;
+		virtual std::string SaveComponent() const override;
 
 	protected:
 		virtual void OnShowEditor(UEngine& inEngine) override;
-		virtual int GetEditorSize(class UEngine& engine) const override;
+		virtual int GetEditorSize() const override;
 
 	private:
 		const std::vector<sf::Vector2i> path;

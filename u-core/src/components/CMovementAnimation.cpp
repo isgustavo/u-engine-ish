@@ -12,16 +12,16 @@
 
 namespace uei
 {
-	CMovementAnimation::CMovementAnimation() : UComponent(), animations() 
+	CMovementAnimation::CMovementAnimation() : CAnimation(), animations()
 	{
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::LEFT));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::RIGHT));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_LEFT));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_LEFT));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::DOWN_RIGHT));
-		allLocomotionTypesName.push_back(uei::MovementToString(EMovement::UP_RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_RIGHT));
 
 		for (auto& key : allLocomotionTypesName)
 		{
@@ -39,6 +39,7 @@ namespace uei
 
 	CMovementAnimation::~CMovementAnimation()
 	{
+
 	}
 	
 	void CMovementAnimation::OnShowEditor(UEngine& engine)
@@ -46,81 +47,71 @@ namespace uei
 		auto* assets = engine.Assets();
 		const auto& allAnimationNames = assets->AnimationNames();
 
-		//if (!animations.empty())
+		int animationIndex = 0;
+
+		for (const std::string& key : allLocomotionTypesName)
 		{
-			int animationIndex = 0;
-			//for (auto& [key, value] : animations)
-			for (const std::string& key : allLocomotionTypesName)
+			auto animationName = animations.find(key);
+			std::string value = " ";
+			if (animationName != animations.end())
 			{
-				auto animationName = animations.find(key);
-				std::string value = " ";
-				if (animationName != animations.end())
-				{
-					value = animationName->second;
-				}
+				value = animationName->second;
+			}
 
-				ImGui::Text(key.c_str());
-				ImGui::SameLine();
-				ImGui::PushID(++animationIndex);
-				if (ImGui::Button("Clear"))
+			ImGui::Text(key.c_str());
+			ImGui::SameLine();
+			ImGui::PushID(++animationIndex);
+			if (ImGui::Button("Clear"))
+			{
+				animations[key] = EMPTY;
+			}
+			ImGui::PopID();
+			ImGui::PushItemWidth(260);
+			std::string id = "##AnimationCombo_" + std::to_string(++animationIndex);
+			if (ImGui::BeginCombo(id.c_str(), value.c_str()))
+			{
+				for (int i = 0; i < allAnimationNames.size(); ++i)
 				{
-					animations[key] = EMPTY;
-				}
-				ImGui::PopID();
-				ImGui::PushItemWidth(260);
-				std::string id = "##AnimationCombo_" + std::to_string(++animationIndex);
-				if (ImGui::BeginCombo(id.c_str(), value.c_str()))
-				{
-					for (int i = 0; i < allAnimationNames.size(); ++i)
+					if (ImGui::Selectable(allAnimationNames[i].c_str()))
 					{
-						if (ImGui::Selectable(allAnimationNames[i].c_str()))
-						{
-							animations[key] = allAnimationNames[i];
-						}
+						animations[key] = allAnimationNames[i];
 					}
-					ImGui::EndCombo();
 				}
-				ImGui::PopItemWidth();
+				ImGui::EndCombo();
+			}
+			ImGui::PopItemWidth();
 
-				//ImGui::Checkbox("FlipX", &bFlipX);
-				//ImGui::SameLine();
-				//ImGui::Checkbox("FlipY", &bFlipY);
+			if (!(animations[key] == EMPTY))
+			{
+				AnimationAsset animationAsset = assets->GetAnimationAsset(animations[key]);
 
-				if (!(animations[key] == EMPTY))
-				{
-					AnimationAsset animationAsset = assets->GetAnimation(animations[key]);
+				currentAnimationDeltaTime += engine.DeltaTime();
+				int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.Speed) % animationAsset.Frame;
+				int spriteX = animationAsset.X + (currentAnimationFrame * animationAsset.Width);
 
-					currentAnimationDeltaTime += engine.DeltaTime();// ImGui::GetIO().DeltaTime; // ToDo delta time
-					int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset.Speed) % animationAsset.Frame;
-					int spriteX = animationAsset.X + (currentAnimationFrame * animationAsset.Width);
+				sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(animationAsset.TextureName),
+					sf::IntRect({ spriteX, animationAsset.Y }, { animationAsset.Width, animationAsset.Height }));
 
-					sf::Sprite* sprite = new sf::Sprite(engine.Assets()->GetTexture(animationAsset.TextureName),
-						sf::IntRect({ spriteX, animationAsset.Y }, { animationAsset.Width, animationAsset.Height }));
+				ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
+				sf::Vector2u size = sprite->getTexture().getSize();
 
-					ImTextureID id = (ImTextureID)(intptr_t)sprite->getTexture().getNativeHandle();
-					sf::Vector2u size = sprite->getTexture().getSize();
+				ImVec2 uv0(
+					(float)spriteX / size.x,
+					(float)animationAsset.Y / size.y);
 
-					//ImGui::Spacing();
+				ImVec2 uv1(
+					(float)(spriteX + animationAsset.Width) / size.x,
+					(float)(animationAsset.Y + animationAsset.Height) / size.y);
 
-					ImVec2 uv0(
-						(float)spriteX / size.x,
-						(float)animationAsset.Y / size.y);
-
-					ImVec2 uv1(
-						(float)(spriteX + animationAsset.Width) / size.x,
-						(float)(animationAsset.Y + animationAsset.Height) / size.y);
-
-					ImGui::SameLine();
-					ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
-				}
-				//ImGui::EndChild();
+				ImGui::SameLine();
+				ImGui::Image(id, ImVec2(64, 64), uv0, uv1);
 			}
 		}
 	}
 
-	int CMovementAnimation::GetEditorSize(UEngine& engine) const
+	int uei::CMovementAnimation::GetEditorSize() const
 	{
-		return bIsRequiredByOtherComponent ? 33 : 180 + engine.CurrentScene()->GridSize() + (animations.size() * 25);
+		return 380;
 	}
 
 	void CMovementAnimation::OnComponentAdd(UEntity& entity)
@@ -139,13 +130,13 @@ namespace uei
 
 	std::string CMovementAnimation::GetAnimation(EMovement movement)
 	{
-		auto it = animations.find(uei::MovementToString(movement));
+		auto it = animations.find(MovementToString(movement));
 		return it != animations.end() ? it->second : EMPTY;
 	}
 
-	void CMovementAnimation::LoadComponent(UEngine& engine, std::istream& in)
+	void uei::CMovementAnimation::LoadComponent(std::istream& in)
 	{
-		std::string a0, a1, a2, a3, a4, a5, a6, a7;
+		/*std::string a0, a1, a2, a3, a4, a5, a6, a7;
 		in >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7;
 
 		animations[allLocomotionTypesName[0]] = a0;
@@ -155,10 +146,19 @@ namespace uei
 		animations[allLocomotionTypesName[4]] = a4;
 		animations[allLocomotionTypesName[5]] = a5;
 		animations[allLocomotionTypesName[6]] = a6;
-		animations[allLocomotionTypesName[7]] = a7;
+		animations[allLocomotionTypesName[7]] = a7;*/
+
+		Deserialize(in, animations[allLocomotionTypesName[0]], 
+			animations[allLocomotionTypesName[1]],
+			animations[allLocomotionTypesName[2]], 
+			animations[allLocomotionTypesName[3]], 
+			animations[allLocomotionTypesName[4]], 
+			animations[allLocomotionTypesName[5]], 
+			animations[allLocomotionTypesName[6]],
+			animations[allLocomotionTypesName[7]]);
 	}
 
-	std::string CMovementAnimation::Save() const
+	std::string CMovementAnimation::SaveComponent() const
 	{
 		std::stringstream ss;
 		for (const std::string& key : allLocomotionTypesName)

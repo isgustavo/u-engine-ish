@@ -33,32 +33,6 @@ namespace uei
 		ClearScene();
 	}
 
-	void UScene::ClearScene()
-	{
-		bIsNavGridDirty = false;
-		bShowNavGrid = false;
-		navGrid.clear();
-		entities.clear();
-		systems.clear();
-		for (auto& [key, value] : entitiesMap)
-		{
-			value.clear();
-		}         
-		entitiesMap.clear();
-	}
-
-	void UScene::Start()
-	{
-		OnStart();
-		bIsNavGridDirty = true;
-		bIsStarted = true;
-	}
-	void UScene::Restart(std::string levelName)
-	{
-		ClearScene();
-		Load(levelName);
-		Start();
-	}
 	void UScene::Load(std::string levelName)
 	{
 		std::string levelPath = "Assets/" + levelName + ".txt";
@@ -82,7 +56,7 @@ namespace uei
 		while (file.good())
 		{
 			file >> str;
-			
+
 			if (str.empty()) break;
 
 			if (str == LEVEL)
@@ -105,8 +79,49 @@ namespace uei
 
 		delete newPrefab;
 		newPrefab = nullptr;
+
+		bIsLoaded = true;
 	}
-	
+
+	void UScene::ClearScene()
+	{
+		bIsNavGridDirty = false;
+		bShowNavGrid = false;
+		bIsLoaded = false;
+		navGrid.clear();
+		entities.clear();
+		startSystems.clear();
+		systems.clear();
+		drawSystems.clear();
+
+		for (auto& [key, value] : entitiesMap)
+		{
+			value.clear();
+		}        
+
+		entitiesMap.clear();
+	}
+
+	void UScene::Start()
+	{
+		OnStart();
+
+		for (auto& s : startSystems)
+		{
+			s.get()->Update(engine, entities);
+		}
+
+		bIsNavGridDirty = true;
+		bIsStarted = true;
+	}
+
+	void UScene::Restart(std::string levelName)
+	{
+		ClearScene();
+		Load(levelName);
+		Start();
+	}
+
 	void uei::UScene::Update()
 	{
 		AddNewEntities();
@@ -142,23 +157,30 @@ namespace uei
 		entity->SetID(index);
 		toAdd.push_back(entity);
 	}
+
 	void UScene::AddEntity(UEntity* entity, sf::Vector2f position)
 	{
 		AddEntity(entity);
 		CTransform* transform = entity->GetComponent<CTransform>();
-		transform->InitPosition(position);
+		transform->SetPosition(position);
 	}
 
 	void UScene::AddNewEntities()
 	{
 		for (auto* e : toAdd)
 		{
+			for (auto& [key, value] : e->components)
+			{
+				value->Start(engine);
+			}
+
 			auto tag = e->Name();
 			entities.push_back(std::unique_ptr<UEntity>(e));
 			entitiesMap[tag].push_back(entities.back().get());
 		}
 		toAdd.clear();
 	}
+
 	void UScene::RemoveInactiveEntities()
 	{
 		entities.erase(
@@ -197,22 +219,22 @@ namespace uei
 			
 			if (cNavGridModifier == nullptr || cTransform == nullptr) continue;
 
-			int eColumns = (int)cTransform->Position().x / gridSize;
-			int eRows = (int)cTransform->Position().y / gridSize;
+			int eColumns = (int)cTransform->GetPosition().x / gridSize;
+			int eRows = (int)cTransform->GetPosition().y / gridSize;
 
 			int index = eRows * gridColumn + eColumns;
 
 			int column = index % gridColumn;
 			int row = index / gridColumn;
 
-			int startColumn = std::max(column - cNavGridModifier->StartColumn(), 0);
-			int startRow = std::max(row - cNavGridModifier->StartRow(), 0);
-			for (int i = startColumn; i < startColumn + cNavGridModifier->Columns(); i++)
+			int startColumn = std::max(column - cNavGridModifier->GetStartColumn(), 0);
+			int startRow = std::max(row - cNavGridModifier->GetStartRow(), 0);
+			for (int i = startColumn; i < startColumn + cNavGridModifier->GetColumns(); i++)
 			{
-				for (int j = startRow; j < startRow + cNavGridModifier->Rows(); j++)
+				for (int j = startRow; j < startRow + cNavGridModifier->GetRows(); j++)
 				{
 					if ((j * gridColumn + i) >= navGrid.size()) break;
-					navGrid[j * gridColumn + i] += cNavGridModifier->Weight();
+					navGrid[j * gridColumn + i] += cNavGridModifier->GetWeight();
 				}
 			}
 		}
@@ -276,6 +298,4 @@ namespace uei
 		sf::Vertex line[] = { {p1, sf::Color::White}, {p2, sf::Color::White} };
 		engine.RenderWindow().draw(line, 2, sf::PrimitiveType::Lines); // ToDo change to viewport
 	}
-
-
 }
