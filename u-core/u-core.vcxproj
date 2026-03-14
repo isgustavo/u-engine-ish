@@ -156,7 +156,6 @@
     <ClCompile Include="src\editor\UEditor.cpp" />
     <ClCompile Include="src\editor\UEditorScene.cpp" />
     <ClCompile Include="src\entities\UEntity.cpp" />
-    <ClCompile Include="src\math\UFloat2D.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\systems\SAnimationSystem.cpp" />
     <ClCompile Include="src\systems\SDrawSystem.cpp" />
@@ -301,7 +300,6 @@
     <ClInclude Include="src\editor\UEditor.h" />
     <ClInclude Include="src\editor\UEditorScene.h" />
     <ClInclude Include="src\entities\UEntity.h" />
-    <ClInclude Include="src\math\UFloat2D.h" />
     <ClInclude Include="src\systems\SAnimationSystem.h" />
     <ClInclude Include="src\systems\SDrawSystem.h" />
     <ClInclude Include="src\systems\SMovementSystem.h" />

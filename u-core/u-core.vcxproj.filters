@@ -36,9 +36,6 @@
     <ClCompile Include="ImGui\imgui-SFML.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\math\UFloat2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\UAsset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -444,9 +441,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SFML-3.0.2\include\SFML\Window.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\math\UFloat2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\UAsset.h">
