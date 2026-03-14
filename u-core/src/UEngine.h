@@ -10,15 +10,15 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Text.hpp>
-#include <SFML/Graphics/Font.hpp>
+//#include <SFML/Graphics/Font.hpp>
 #include <iostream>
-
 
 inline const std::string LEVEL = "Level";
 inline const std::string PREFAB = "Prefab";
 inline const std::string TEXTURE = "Texture";
 inline const std::string SPRITE = "Sprite";
 inline const std::string ANIMATION = "Animation";
+inline const std::string FONT = "Font";
 inline const std::string COMPONENT = "Component";
 inline const std::string ENTITY = "Entity";
 inline const std::string EMPTY = "Empty";
@@ -59,7 +59,7 @@ namespace uei
 		sf::Vector2f screenSize;
 		bool bShowEditor;
 
-		sf::Font font;
+		//sf::Font font;
 
 		const std::string startLevelName;
 		const float fixedDeltaTime;

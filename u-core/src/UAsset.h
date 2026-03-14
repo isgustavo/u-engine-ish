@@ -126,6 +126,7 @@ namespace uei
 		void RemovePrefab(const std::string& prefabName);
 		const std::unordered_map<std::string, uei::UEntity*>& Prefabs() { return prefabs; }
 
+		const sf::Font& GetDefaultFont() const { return defaultFont; }
 		const sf::Font& GetFont(const std::string& fontName) const;
 
 		std::vector<std::string>& AllAssetTypes() 
@@ -140,6 +141,7 @@ namespace uei
 			return allAssetTypesName; 
 		}
 		std::vector<std::string>& AllTextures() { return allTexturesName; }
+		std::vector<std::string>& AllFonts() { return allFontsName; }
 
 		void Save();
 		void AddSprite(const std::string& name, const std::string& path, const int x, const int y, const int width, const int height);
@@ -150,23 +152,26 @@ namespace uei
 		std::unordered_map<std::string, sf::Texture> textures;
 		std::unordered_map<std::string, uei::SpriteAsset> spriteAssets;
 		std::unordered_map<std::string, uei::AnimationAsset> animations;
+		sf::Font defaultFont;
+		std::unordered_map<std::string, sf::Font> fonts;
 
 		//uei::UEntity newPrefab;
 		std::unordered_map<std::string, uei::UEntity*> prefabs;
 
 		std::vector<std::string> spriteNames;
 		std::vector<std::string> animationNames;
+		std::vector<std::string> fontNames;
 
-		std::map<std::string, sf::Font> fonts;
+		//std::map<std::string, sf::Font> fonts;
 		//std::map<std::string, Animation> animations;
 
 		
 		void LoadTextures();
+		void LoadFonts();
 		void AddFont(const std::string& name, const std::string& path);
 		
 		std::vector<std::string> allAssetTypesName;
 		std::vector<std::string> allTexturesName;
+		std::vector<std::string> allFontsName;
 	};
-
-
 }

@@ -5,11 +5,15 @@
 #include <fstream>
 #include <cassert>
 #include <map>
+
 #include <SFML/Graphics.hpp>
 
 namespace uei
 {
-	UAsset::UAsset() { }
+	UAsset::UAsset() 
+	{
+		defaultFont = sf::Font("Assets/fonts/OpenDyslexic-Regular.otf");
+	}
 
 	void UAsset::Load(UEngine& engine)
 	{
@@ -22,6 +26,7 @@ namespace uei
 		animationNames.clear();
 
 		LoadTextures();
+		LoadFonts();
 
 		uei::UEntity* prefab = nullptr;
 
@@ -140,6 +145,25 @@ namespace uei
 				{
 					textures.emplace(t.path().filename().string(), texture);
 					AllTextures().push_back(t.path().filename().string());
+				}
+			}
+		}
+	}
+	void UAsset::LoadFonts()
+	{
+		for (const auto& f : std::filesystem::directory_iterator("Assets/Fonts"))
+		{
+			if (f.is_regular_file() && f.path().extension() == ".otf")
+			{
+				sf::Font font = sf::Font();
+				if (!font.openFromFile(f.path()))
+				{
+					std::cerr << "Could not load font file:" << f.path() << std::endl;
+				}
+				else
+				{
+					fonts.emplace(f.path().filename().string(), font);
+					AllFonts().push_back(f.path().filename().string());
 				}
 			}
 		}

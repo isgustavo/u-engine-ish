@@ -254,6 +254,21 @@ namespace uei
 		{
 			DrawLine(sf::Vector2f(0, y * gridSize), sf::Vector2f(gridSize * gridColumn, y * gridSize));
 		}
+
+		sf::Text gridText(engine.Assets()->GetDefaultFont(), "", 8);
+		for (int x = 0; x < gridColumn; x++)
+		{
+			for (int y = 0; y < gridRow; y++)
+			{
+				std::string xGrid = std::to_string(x);
+				std::string yGrid = std::to_string(y);
+				
+				gridText.setString("(" + xGrid + "," + yGrid + ")");
+				gridText.setPosition({(float)x * (gridSize), (float)y * (gridSize)});
+
+				engine.RenderWindow().draw(gridText);
+			}
+		}
 	}
 
 	void UScene::DrawLine(const sf::Vector2f& p1, const sf::Vector2f& p2)
