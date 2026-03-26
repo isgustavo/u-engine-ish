@@ -1,6 +1,5 @@
 #include "SMovementSystem.h"
 #include <components/CTransform.h>
-#include <components/CIdleAnimation.h>
 #include <components/CMovement.h>
 
 namespace uei
@@ -10,43 +9,17 @@ namespace uei
 
 	}
 
-	void SMovementSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
+	void SMovementSystem::Update(UEngine& engine, std::vector<UEntity*> entities)
 	{
 		for (auto& e : entities)
 		{
-			auto* cTransform = e->GetComponent<uei::CTransform>();
-			auto* cMovement = e->GetComponent<uei::CMovement>();
+			auto* cTransform = e->GetComponent<CTransform>();
+			auto* cMovement = e->GetComponent<CMovement>();
 
 			if (cTransform == nullptr || cMovement == nullptr) continue;
-
-			EMovement movement = EMovement::NONE;
-
-			if (cTransform->IsMoving())
-			{
-				if (cTransform->GetPosition().x > cTransform->GetPositionLastUpdate().x)
-				{
-					movement = EMovement::RIGHT;
-					SetDiagonalMovement(cTransform, cMovement, movement);
-				}
-				else if (cTransform->GetPosition().x < cTransform->GetPositionLastUpdate().x)
-				{
-					movement = EMovement::LEFT;
-					SetDiagonalMovement(cTransform, cMovement, movement);
-				}
-				else 
-				{
-					if (cTransform->GetPosition().y > cTransform->GetPositionLastUpdate().y)
-					{
-						movement = EMovement::UP;
-					}
-					else if (cTransform->GetPosition().y < cTransform->GetPositionLastUpdate().y)
-					{
-						movement = EMovement::DOWN;
-					}
-				}
-			}
-
-			cMovement->SetCurrentMovement(movement);
+			
+			sf::Vector2i movement = MovementToVector(cMovement->GetCurrentMovement());
+			cTransform->SetPosition(sf::Vector2f(cTransform->GetPosition() + sf::Vector2f(movement.x * 0.25f * engine.DeltaTime(), movement.y * 0.25f * engine.DeltaTime())));
 		}
 	}
 

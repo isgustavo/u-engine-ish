@@ -14,19 +14,14 @@ namespace uei
 {
 	CMovementAnimation::CMovementAnimation() : CAnimation(), animations()
 	{
-		allLocomotionTypesName.push_back(MovementToString(EMovement::UP));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::LEFT));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::RIGHT));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_LEFT));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_LEFT));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_RIGHT));
-		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_RIGHT));
-
-		for (auto& key : allLocomotionTypesName)
-		{
-			animations[key] = EMPTY;
-		}
+		animations[MovementToString(EMovement::UP)] = EMPTY;
+		animations[MovementToString(EMovement::LEFT)] = EMPTY;
+		animations[MovementToString(EMovement::DOWN)] = EMPTY;
+		animations[MovementToString(EMovement::RIGHT)] = EMPTY;
+		animations[MovementToString(EMovement::UP_LEFT)] = EMPTY;
+		animations[MovementToString(EMovement::DOWN_LEFT)] = EMPTY;
+		animations[MovementToString(EMovement::DOWN_RIGHT)] = EMPTY;
+		animations[MovementToString(EMovement::UP_RIGHT)] = EMPTY;
 	}
 
 	CMovementAnimation::CMovementAnimation(const std::unordered_map<std::string, std::string>& inAnimations) : CMovementAnimation()
@@ -48,6 +43,16 @@ namespace uei
 		const auto& allAnimationNames = assets->AnimationNames();
 
 		int animationIndex = 0;
+
+		std::vector<std::string> allLocomotionTypesName;
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_RIGHT));
 
 		for (const std::string& key : allLocomotionTypesName)
 		{
@@ -136,31 +141,30 @@ namespace uei
 
 	void uei::CMovementAnimation::LoadComponent(std::istream& in)
 	{
-		/*std::string a0, a1, a2, a3, a4, a5, a6, a7;
-		in >> a0 >> a1 >> a2 >> a3 >> a4 >> a5 >> a6 >> a7;
-
-		animations[allLocomotionTypesName[0]] = a0;
-		animations[allLocomotionTypesName[1]] = a1;
-		animations[allLocomotionTypesName[2]] = a2;
-		animations[allLocomotionTypesName[3]] = a3;
-		animations[allLocomotionTypesName[4]] = a4;
-		animations[allLocomotionTypesName[5]] = a5;
-		animations[allLocomotionTypesName[6]] = a6;
-		animations[allLocomotionTypesName[7]] = a7;*/
-
-		Deserialize(in, animations[allLocomotionTypesName[0]], 
-			animations[allLocomotionTypesName[1]],
-			animations[allLocomotionTypesName[2]], 
-			animations[allLocomotionTypesName[3]], 
-			animations[allLocomotionTypesName[4]], 
-			animations[allLocomotionTypesName[5]], 
-			animations[allLocomotionTypesName[6]],
-			animations[allLocomotionTypesName[7]]);
+		Deserialize(in, animations[MovementToString(EMovement::UP)],
+			animations[MovementToString(EMovement::LEFT)],
+			animations[MovementToString(EMovement::DOWN)],
+			animations[MovementToString(EMovement::RIGHT)],
+			animations[MovementToString(EMovement::UP_LEFT)],
+			animations[MovementToString(EMovement::DOWN_LEFT)],
+			animations[MovementToString(EMovement::DOWN_RIGHT)],
+			animations[MovementToString(EMovement::UP_RIGHT)]);
 	}
 
 	std::string CMovementAnimation::SaveComponent() const
 	{
 		std::stringstream ss;
+
+		std::vector<std::string> allLocomotionTypesName;
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_LEFT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::DOWN_RIGHT));
+		allLocomotionTypesName.push_back(MovementToString(EMovement::UP_RIGHT));
+
 		for (const std::string& key : allLocomotionTypesName)
 		{
 			auto it = animations.find(key);

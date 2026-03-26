@@ -9,7 +9,8 @@ namespace uei
     public:
         SMovementSystem();
 
-        virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
+        virtual std::string SystemName() const { return "SMovementSystem"; }
+        virtual void Update(UEngine& engine, std::vector<UEntity*> entities) override;
 
     private:
         void SetDiagonalMovement(class CTransform* ctransform, class CMovement* cMovement, EMovement& movement);

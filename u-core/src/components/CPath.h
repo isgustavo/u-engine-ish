@@ -2,6 +2,7 @@
 #include "UComponent.h"
 #include <SFML/System/Vector2.hpp>
 #include <vector>
+#include <iostream>
 
 namespace uei
 {
@@ -9,33 +10,26 @@ namespace uei
 	{
 	public:
 
-		CPath() : UComponent() 
-		{
-		}
-		CPath(const std::vector<sf::Vector2i>& inPath) : UComponent(),
-			path(inPath)
-		{
-		}
+		CPath();
+		~CPath();
 
-		const std::vector<sf::Vector2i>& Path() const;
+		int GetCurrentPathNodeIndex() const { return currentPathNodeIndex; }
+		void UpdateCurrentPathNodeIndex();
+		sf::Vector2i& GetCurrentPathNode() { return path[currentPathNodeIndex]; }
+		std::vector<sf::Vector2i>& GetPath() { return path; }
+		void SetPath(std::vector<sf::Vector2i> inPath);
 
 		UComponent* Clone() override
 		{
-			return new CPath();
+			return new CPath(currentPathNodeIndex, GetPath());
 		}
+
 		inline virtual std::string ComponentName() const override { return "CPath"; }
 
-		virtual void LoadComponent(std::istream & in) override;
-		virtual std::string SaveComponent() const override;
-
-	protected:
-		virtual void OnShowEditor(UEngine& inEngine) override;
-		virtual int GetEditorSize() const override;
-
 	private:
-		const std::vector<sf::Vector2i> path;
-
-		virtual void OnComponentAdd(class UEntity& entity) override;
-		virtual void OnComponentRemove(class UEntity& entity) override;
+		CPath(int inCurrentPathNodeIndex, std::vector<sf::Vector2i>& inPath);
+		
+		int currentPathNodeIndex = 0;
+		std::vector<sf::Vector2i> path;
 	};
 }

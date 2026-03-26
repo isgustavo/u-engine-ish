@@ -37,15 +37,15 @@ namespace uei
 		virtual void Start(class UEngine& engine);
 
 		virtual std::string ComponentName() const = 0;
-		virtual void LoadComponent(std::istream & in) = 0;
-		virtual std::string SaveComponent() const = 0;
+		inline virtual void LoadComponent(std::istream& in) {}
+		inline virtual std::string SaveComponent() const { return std::string(); }
 
 	protected:
 		bool bCanRemove;
 		int requiredByOtherComponent;
 
 		virtual int GetEditorSize() const { return 33; }
-		virtual void OnShowEditor(class UEngine& engine) = 0;
+		inline virtual void OnShowEditor(class UEngine& engine) {}
 		
 		inline virtual void OnComponentAdd(class UEntity& entity) {}
 		inline virtual void OnComponentRemove(class UEntity& entity) {}

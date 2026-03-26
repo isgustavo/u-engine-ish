@@ -1,7 +1,10 @@
 #include "CObstacle.h"
+#include "CNavGridModifier.h"
+#include "entities/UEntity.h"
+
 namespace uei
 {
-	uei::CObstacle::CObstacle()
+	CObstacle::CObstacle() : UComponent()
 	{
 
 	}
@@ -11,14 +14,14 @@ namespace uei
 
 	}
 
-	void uei::CObstacle::LoadComponent(std::istream& in)
+	void CObstacle::OnComponentAdd(UEntity& entity)
 	{
-	
+		entity.SetRequiredByOtherComponent<CNavGridModifier>(true);
 	}
 
-	std::string CObstacle::SaveComponent() const
+	void CObstacle::OnComponentRemove(UEntity& entity)
 	{
-		return std::string();
+		entity.SetRequiredByOtherComponent<CNavGridModifier>(true);
 	}
 
 	void CObstacle::OnShowEditor(UEngine& engine)

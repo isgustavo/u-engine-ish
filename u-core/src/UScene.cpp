@@ -1,12 +1,14 @@
 #include "UScene.h"
+#include "editor/UEditorScene.h"
+#include "editor/UEditor.h"
 #include "entities/UEntity.h"
+#include "components/CTransform.h"
+#include "components/CObstacle.h"
+#include "components/CNavGridModifier.h"
 
 #include <string>
 #include <memory>
 #include <iostream>
-#include <components/CTransform.h>
-#include <components/CObstacle.h>
-#include <components/CNavGridModifier.h>
 
 #include <filesystem>
 #include <fstream>
@@ -14,18 +16,13 @@
 
 namespace uei
 {
-	UScene::UScene(UEngine& inEngine, std::string levelName) :
-		engine(inEngine),
-		navGrid(), entities(), entitiesMap(), toAdd(), bIsPause(false)
+	UScene::UScene(UEngine& inEngine, std::string levelName) : engine(inEngine),
+		navGrid(), entities(), /*entitiesMap(),*/ toAdd(), bIsPause(false)
 	{ 
-		if (levelName != EMPTY)
-		{
-			Load(levelName);
-		}
-
 		view = sf::View();
-		view.setSize(engine.ScreenSize());
-		view.setCenter({ engine.ScreenSize().x * 0.5f, engine.ScreenSize().y * 0.5f });
+		view.setSize(engine.GetScreenSize());
+		if (levelName == EMPTY) return;
+		Load(levelName);
 	}
 
 	UScene::~UScene() 
@@ -61,8 +58,8 @@ namespace uei
 
 			if (str == LEVEL)
 			{
-				file >> gridColumn >> gridRow >> gridSize;
-				navGrid = std::vector(gridColumn * gridRow, 0);
+				file >> gridColumns >> gridRows >> gridSize;
+				navGrid = std::vector(gridColumns * gridRows, 0);
 			}
 			else if (str == ENTITY)
 			{
@@ -73,13 +70,21 @@ namespace uei
 				uei::UEntity entity = engine.Assets()->GetPrefab(entityName);
 				AddEntity(entity.Clone(), sf::Vector2f(px, py));
 			}
-
+			else if (str == SYSTEM)
+			{
+				std::string systemName;
+				
+				file >> systemName;
+				USystem* newSystem = UEditor::CreateSystem(systemName);
+				AddSystem(newSystem);
+			}
 			str = "";
 		}
 
 		delete newPrefab;
 		newPrefab = nullptr;
 
+		view.setCenter({ (engine.GetScreenSize().x * 0.5f) + gridSize * 0.5f, (engine.GetScreenSize().y * 0.5f) + gridSize * 0.5f });
 		bIsLoaded = true;
 	}
 
@@ -90,28 +95,12 @@ namespace uei
 		bIsLoaded = false;
 		navGrid.clear();
 		entities.clear();
-		startSystems.clear();
 		systems.clear();
-		drawSystems.clear();
-
-		for (auto& [key, value] : entitiesMap)
-		{
-			value.clear();
-		}        
-
-		entitiesMap.clear();
 	}
 
 	void UScene::Start()
 	{
 		OnStart();
-
-		for (auto& s : startSystems)
-		{
-			s.get()->Update(engine, entities);
-		}
-
-		bIsNavGridDirty = true;
 		bIsStarted = true;
 	}
 
@@ -122,17 +111,20 @@ namespace uei
 		Start();
 	}
 
-	void uei::UScene::Update()
+	void UScene::Update()
 	{
 		AddNewEntities();
 		RemoveInactiveEntities();
 
-		if (bIsNavGridDirty)
-			UpdateNavGrid();
+		//if (bIsNavGridDirty)
+		//	UpdateNavGrid();
 
-		for (auto& s : systems)
+		for (auto* s : systems)
 		{
-			s.get()->Update(engine, entities);
+			bool canUpdate = !IsEditorScene() || s->UpdateEditorScene();
+			if (!canUpdate) continue;
+			
+			s->Update(engine, entities);
 		}
 
 		OnUpdate(engine.DeltaTime());
@@ -140,13 +132,13 @@ namespace uei
 
 	void UScene::Draw()
 	{
-		for (auto& s : drawSystems)
+		for (auto* s : systems)
 		{
-			s.get()->Update(engine, entities);
-		}
+			bool canDraw = !IsEditorScene() || s->DrawEditorScene();
+			if (!canDraw) continue;
 
-		if (bShowNavGrid)
-			ShowNavGrid();
+			s->Draw(engine);
+		}
 
 		OnDraw();
 	}
@@ -158,7 +150,7 @@ namespace uei
 		toAdd.push_back(entity);
 	}
 
-	void UScene::AddEntity(UEntity* entity, sf::Vector2f position)
+	void UScene::AddEntity(UEntity* entity, const sf::Vector2f& position)
 	{
 		AddEntity(entity);
 		CTransform* transform = entity->GetComponent<CTransform>();
@@ -171,12 +163,14 @@ namespace uei
 		{
 			for (auto& [key, value] : e->components)
 			{
+				if (e->HasComponent<CNavGridModifier>())
+				{
+					bIsNavGridDirty = true;
+				}
 				value->Start(engine);
 			}
 
-			auto tag = e->Name();
-			entities.push_back(std::unique_ptr<UEntity>(e));
-			entitiesMap[tag].push_back(entities.back().get());
+			entities.push_back(e);
 		}
 		toAdd.clear();
 	}
@@ -191,102 +185,32 @@ namespace uei
 				}),
 			entities.end()
 		);
-
-		for (auto& [tag, entities] : entitiesMap)
-		{
-			entities.erase(
-				std::remove_if(entities.begin(), entities.end(),
-					[](const auto& e)
-					{
-						return e != nullptr && !e->IsActive();
-					}),
-				entities.end()
-			);
-		}
-	}
-
-	void UScene::UpdateNavGrid()
-	{
-		for (int i = 0; i < navGrid.size(); i++)
-		{
-			navGrid[i] = 0;
-		}
-
-		for (auto& e : entities)
-		{
-			CTransform* cTransform = e.get()->GetComponent<CTransform>();
-			CNavGridModifier* cNavGridModifier = e.get()->GetComponent<CNavGridModifier>();
-			
-			if (cNavGridModifier == nullptr || cTransform == nullptr) continue;
-
-			int eColumns = (int)cTransform->GetPosition().x / gridSize;
-			int eRows = (int)cTransform->GetPosition().y / gridSize;
-
-			int index = eRows * gridColumn + eColumns;
-
-			int column = index % gridColumn;
-			int row = index / gridColumn;
-
-			int startColumn = std::max(column - cNavGridModifier->GetStartColumn(), 0);
-			int startRow = std::max(row - cNavGridModifier->GetStartRow(), 0);
-			for (int i = startColumn; i < startColumn + cNavGridModifier->GetColumns(); i++)
-			{
-				for (int j = startRow; j < startRow + cNavGridModifier->GetRows(); j++)
-				{
-					if ((j * gridColumn + i) >= navGrid.size()) break;
-					navGrid[j * gridColumn + i] += cNavGridModifier->GetWeight();
-				}
-			}
-		}
-
-		bIsNavGridDirty = false;
-	}
-
-	void UScene::ShowNavGrid()
-	{
-		for (int i = 0; i < gridColumn; i++)
-		{
-			for (int j = 0; j < gridRow; j++)
-			{
-				sf::RectangleShape grid(sf::Vector2f(gridSize, gridSize));
-				grid.setPosition(sf::Vector2f(i * gridSize, j * gridSize));
-
-				if (navGrid[j * gridColumn + i] == 0)
-				{
-					grid.setFillColor(sf::Color(0, 0, 255, 0));
-				}
-				else 
-				{
-					grid.setFillColor(sf::Color(0, 0, 255, 100 + navGrid[j * gridColumn + i]));
-				}
-
-				engine.RenderWindow().draw(grid);
-			}
-		}
 	}
 
 	void UScene::DrawGrid()
 	{
-		for (int x = 0; x < gridColumn; x++)
+		for (int x = 0; x < gridColumns; x++)
 		{
-			DrawLine(sf::Vector2f(x * gridSize, 0), sf::Vector2f(x * gridSize, gridSize * gridRow));
+			DrawLine(sf::Vector2f(x * gridSize + gridSize * 0.5f, gridSize * 0.5f), sf::Vector2f(x * gridSize + gridSize * 0.5f, gridSize * gridRows + gridSize * 0.5f));
 		}
 
-		for (int y = 0; y < gridRow; y++)
+		for (int y = 0; y < gridRows; y++)
 		{
-			DrawLine(sf::Vector2f(0, y * gridSize), sf::Vector2f(gridSize * gridColumn, y * gridSize));
+			DrawLine(sf::Vector2f(gridSize * 0.5f, y * gridSize + gridSize * 0.5f), sf::Vector2f(gridSize * gridColumns + gridSize * 0.5f, y * gridSize + gridSize * 0.5f));
 		}
 
 		sf::Text gridText(engine.Assets()->GetDefaultFont(), "", 8);
-		for (int x = 0; x < gridColumn; x++)
+		for (int x = 0; x < gridColumns; x++)
 		{
-			for (int y = 0; y < gridRow; y++)
+			for (int y = 0; y < gridRows; y++)
 			{
 				std::string xGrid = std::to_string(x);
 				std::string yGrid = std::to_string(y);
 				
 				gridText.setString("(" + xGrid + "," + yGrid + ")");
-				gridText.setPosition({(float)x * (gridSize), (float)y * (gridSize)});
+								
+				gridText.setPosition(PositionToCenter(sf::Vector2f(x, y), gridSize));
+				//gridText.setPosition(sf::Vector2f(x * gridSize + gridSize * 0.5f, y * gridSize + gridSize * 0.5f));
 
 				engine.RenderWindow().draw(gridText);
 			}

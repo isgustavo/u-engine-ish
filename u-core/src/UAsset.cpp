@@ -79,7 +79,7 @@ namespace uei
 				std::string componentName;
 				file >> componentName;
 				if (componentName.empty()) continue;
-				auto* newComponent = UEditor::Create(componentName);
+				auto* newComponent = UEditor::CreateComponent(componentName);
 				newComponent->LoadComponent(file);
 				prefab->AddComponent(newComponent);
 			}

@@ -6,8 +6,10 @@ namespace uei
 	class UEditorScene : public UScene
 	{
 	public:
-		UEditorScene(UEngine& inEngine, std::string levelName);
+		UEditorScene(UEngine& inEngine);
 		~UEditorScene();
+
+		virtual bool IsEditorScene() override { return true; }
 
 		virtual void OnStart() override;
 		virtual void OnUpdate(float deltaTime) override;
@@ -55,6 +57,8 @@ namespace uei
 		void ShowEditPrefabTab();
 		void ShowPrefabGallery();
 
+		void ShowSystemTab();
+
 		void CreateScene();
 		void LoadScene();
 		void SaveScene();
@@ -65,9 +69,6 @@ namespace uei
 		void AddImGui(const SpriteAsset* spriteData, bool flipX, bool flipY, float thumbnailSize = 64.0f);
 		void AddImGui(const std::string& textureName, int x, int y, int width, int height, bool flipX, bool flipY, float thumbnailSize = 64.0f);
 
-		//void SaveAsset();
-		//void SaveUpdatePrefab();
-		//void SavePrefab();
 		void CancelPrefabSelected();
 
 		void ClearEditor();

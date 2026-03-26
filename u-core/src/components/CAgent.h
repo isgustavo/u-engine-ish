@@ -1,24 +1,20 @@
 #pragma once
-#include "CRect.h"
-
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <memory>
+#include "UComponent.h"
 
 namespace uei
 {
-	class CAgent : public CRect
+	class CAgent : public UComponent
 	{
 	public:
 
-		CAgent(const sf::Vector2f& inSize, const sf::Vector2i& inGridSize) : CRect(inSize, sf::Color::Green),
-			gridSize(inGridSize)
+		CAgent();
+		~CAgent();
+
+		UComponent* Clone() override
 		{
+			return new CAgent();
 		}
 
-		const sf::Vector2i& GridSize() { return gridSize; }
-
-	private:
-		sf::Vector2i gridSize;
+		inline std::string ComponentName() const override { return "CAgent"; }
 	};
 }

@@ -39,9 +39,15 @@ namespace uei
 		~CMovement();
 
 		EGrid GridMovement() const { return gridMovement; }
-		
+		EMovement GetLastMovement() const { return lastMovement; }
 		EMovement GetCurrentMovement() const { return currentMovement; }
-		void SetCurrentMovement(EMovement movement) { currentMovement = movement; }
+		void SetCurrentMovement(EMovement movement) 
+		{
+			lastMovement = currentMovement;
+			currentMovement = movement; 
+		}
+
+		std::vector<sf::Vector2i> GetValidGridMovement() const;
 
 		UComponent* Clone() override
 		{
@@ -60,9 +66,8 @@ namespace uei
 	private:
 		CMovement(EGrid inGridMovement);
 
-		std::vector<std::string> allMovementTypesName;
-
 		EGrid gridMovement;
+		EMovement lastMovement;
 		EMovement currentMovement;
 	};
 }

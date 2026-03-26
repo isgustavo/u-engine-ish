@@ -1,13 +1,19 @@
 #include "SPathfinderSystem.h"
 
+#include <entities/UEntity.h>
 #include <components/CAgent.h>
 #include <components/CPathRequest.h>
 #include <components/CPath.h>
-#include <entities/UEntity.h>
+#include <components/CTransform.h>
+#include <components/CMovementAnimation.h>
+#include <components/CMovement.h>
+#include <components/CNavGridModifier.h>
+#include <components/CPlayer.h>
+
 #include <vector>
 #include <unordered_map>
-#include <components/CTransform.h>
 #include <iostream>
+
 
 namespace uei
 {
@@ -17,65 +23,64 @@ namespace uei
 		position = inPosition;
 		G = H = 0;
 	}
-	int Node::GetScore()
+
+	int Node::GetScore() const
 	{
 		return G + H;
 	}
-	SPathfinderSystem::SPathfinderSystem(Heuristic inHeuristic, std::vector<int>& inNavGrid, 
-											int inNavGridColumnSize, int inNavGridSqrSize) : USystem(),
-		heuristic(inHeuristic), navGrid(inNavGrid), navGridColumnSize(inNavGridColumnSize), navGridSqrSize(inNavGridSqrSize)
+
+	SPathfinderSystem::SPathfinderSystem()
 	{
-		openVector.reserve(navGrid.size());
-		closeVector.reserve(navGrid.size());
-		SetGridCoordinateMoves();
+		heuristic = Heuristic::Euclidean;
 	}
-	void SPathfinderSystem::SetGridCoordinateMoves()
+
+	void SPathfinderSystem::Update(UEngine& engine, std::vector<UEntity*> entities)
 	{
-		gridCoordinateMoves.push_back(sf::Vector2i(0, 1));
-		gridCoordinateMoves.push_back(sf::Vector2i(1, 0));
-		gridCoordinateMoves.push_back(sf::Vector2i(0, -1));
-		gridCoordinateMoves.push_back(sf::Vector2i(-1, 0));
-		if (heuristic != Heuristic::Manhattan)
+		for (auto& e : entities)
 		{
-			gridCoordinateMoves.push_back(sf::Vector2i(-1, -1));
-			gridCoordinateMoves.push_back(sf::Vector2i(1, 1));
-			gridCoordinateMoves.push_back(sf::Vector2i(-1, 1));
-			gridCoordinateMoves.push_back(sf::Vector2i(1, -1));
+			auto* cAgent = e->GetComponent<CAgent>();
+			if (cAgent == nullptr) continue;
+
+			auto* cPathRequest = e->GetComponent<CPathRequest>();
+			if (cPathRequest == nullptr) continue;
+
+			auto* cMovement = e->GetComponent<CMovement>();
+			if (cMovement == nullptr) continue;
+
+			auto* cTransform = e->GetComponent<CTransform>();
+			if (cTransform == nullptr) continue;
+
+			sf::Vector2i targetGripPosition = PositionToGrid(cPathRequest->TargetPosition(), engine.CurrentScene()->GridSize());
+			sf::Vector2i targetGridPositionClamp = sf::Vector2i(std::clamp(targetGripPosition.x, 0, engine.CurrentScene()->GridColumns()-1),
+				std::clamp(targetGripPosition.y, 0, engine.CurrentScene()->GridRows()-1));
+
+			CPath* path = e->GetOrAddComponent<CPath>();
+			path->SetPath(FindPath(engine.CurrentScene()->GetNavGrid(),
+					targetGridPositionClamp,
+					PositionToGrid(cTransform->GetPosition(), engine.CurrentScene()->GridSize()),
+					cPathRequest->GetInitialInvalidGridMovement(),
+					cMovement->GetValidGridMovement(),
+					1,
+					1,
+					engine.CurrentScene()->GridColumns()));
+
+			e->RemoveComponent<uei::CPathRequest>();
 		}
 	}
-	void uei::SPathfinderSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
+
+	std::vector<sf::Vector2i> SPathfinderSystem::FindPath(const std::vector<int>& inNavGrid,
+		const sf::Vector2i& targetGridPosition, const sf::Vector2i& agentGridPosition,
+		const std::vector<sf::Vector2i>& agentInitialInvalidGridMovement,
+		const std::vector<sf::Vector2i>& agentValidGridMovement,
+		const int agentGridColumn, const int agentGridRow, const int gridColumns)
 	{
-		/*for (auto& e : entities)
-		{
-			auto* c_agent = e->GetComponent<uei::CAgent>();
-			auto* c_transform = e->GetComponent<uei::CTransform>();
-			auto* c_pathRequest = e->GetComponent<uei::CPathRequest>();
 
-			if (c_agent == nullptr || c_pathRequest == nullptr || c_transform == nullptr) continue;
+		int targetIndex = (targetGridPosition.y * gridColumns) + targetGridPosition.x;
 
-			for (int i = 0; i < navGrid.size(); i++)
-			{
-				std::cout << navGrid[i] << ",";
-			}
+		bool bFirstNode = true;
+		Node* currentNode = nullptr;
 
-			e->AddComponent<uei::CPath>(
-				FindPath(sf::Vector2i(c_transform->Position().x / navGridSqrSize, c_transform->Position().y / navGridSqrSize),
-					sf::Vector2i(c_pathRequest->TargetPosition().x / navGridSqrSize, c_pathRequest->TargetPosition().y / navGridSqrSize),
-						c_agent->GridSize())
-			);
-			e->RemoveComponent<uei::CPathRequest>();
-		}*/
-	}
-
-	const std::vector<sf::Vector2i> SPathfinderSystem::FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate, const sf::Vector2i& inSourceSize)
-	{
-		std::cout << "FindPath" << std::endl;
-		std::cout << inSourceCoordinate.x << "," << inSourceCoordinate.y << std::endl;
-		std::cout << inTargetCoordinate.x << "," << inTargetCoordinate.y << std::endl;
-		std::cout << "Start" << std::endl;
-		uei::Node* currentNode = nullptr;
-		openVector.push_back(new Node(inSourceCoordinate, nullptr));
-
+		openVector.push_back(new Node(agentGridPosition, nullptr));
 		while (!openVector.empty())
 		{
 			auto current_it = openVector.begin();
@@ -91,7 +96,7 @@ namespace uei
 				}
 			}
 
-			if (currentNode->position == inTargetCoordinate)
+			if (currentNode->position == targetGridPosition)
 			{
 				break;
 			}
@@ -99,26 +104,41 @@ namespace uei
 			closeVector.push_back(currentNode);
 			openVector.erase(current_it);
 
-			for (size_t i = 0; i < gridCoordinateMoves.size(); i++)
+			for (size_t i = 0; i < agentValidGridMovement.size(); i++)
 			{
-				const sf::Vector2i newCoordinate(currentNode->position + gridCoordinateMoves[i]);
-				//std::cout << newCoordinate.x << "," << newCoordinate.y << std::endl;
-				//const int newCoordinateIndex = (newCoordinate.x * navGridColumnSize) + newCoordinate.y;
-				if (IsOutOfNavGrid(currentNode->position, gridCoordinateMoves[i], inSourceSize) ||
+				if (currentNode->parent == nullptr)
+				{
+					bool isInitialInvalidGridMovement = false;
+					for (size_t j = 0; j < agentInitialInvalidGridMovement.size(); j++)
+					{
+						if (agentValidGridMovement[i] == agentInitialInvalidGridMovement[j])
+						{
+							isInitialInvalidGridMovement = true;
+							break;
+						}
+					}
+
+					if (isInitialInvalidGridMovement)
+						continue;
+				}
+
+				const sf::Vector2i newCoordinate(currentNode->position + agentValidGridMovement[i]);
+				if (IsOutOfNavGrid(inNavGrid, targetIndex, currentNode->position, agentValidGridMovement[i], 
+					agentGridColumn, agentGridRow, gridColumns) ||
 					FindNode(closeVector, newCoordinate))
 				{
 					continue;
 				}
 
-				const int newCoordinateIndex = (newCoordinate.x * navGridColumnSize) + newCoordinate.y;
-				const int newCoordinateCost = currentNode->G + (((i < 4) ? 100 : 142) + navGrid[newCoordinateIndex]);
+				const int newCoordinateIndex = (newCoordinate.y * gridColumns) + newCoordinate.x;
+				const int newCoordinateCost = currentNode->G + (((i < 4) ? 100 : 142) + inNavGrid[newCoordinateIndex]);
 
 				Node* newCoordinateNode = FindNode(openVector, newCoordinate);
 				if (newCoordinateNode == nullptr)
 				{
 					newCoordinateNode = new Node(newCoordinate, currentNode);
 					newCoordinateNode->G = newCoordinateCost;
-					newCoordinateNode->H = GetHeuristicCost(newCoordinate, inTargetCoordinate);
+					newCoordinateNode->H = GetHeuristicCost(newCoordinate, targetGridPosition);
 					openVector.push_back(newCoordinateNode);
 				}
 				else if (newCoordinateCost < newCoordinateNode->G)
@@ -132,8 +152,10 @@ namespace uei
 		std::vector<sf::Vector2i> path;
 		while (currentNode != nullptr)
 		{
-			std::cout << currentNode->position.x << "," << currentNode->position.y << std::endl;
-			path.push_back(currentNode->position);
+			if (inNavGrid[(currentNode->position.y * gridColumns) + currentNode->position.x] < 100)
+			{
+				path.push_back(currentNode->position);
+			}
 			currentNode = currentNode->parent;
 		}
 
@@ -142,50 +164,53 @@ namespace uei
 			delete* it;
 			it = openVector.erase(it);
 		}
+		openVector.clear();
 
 		for (auto it = closeVector.begin(); it != closeVector.end();)
 		{
 			delete* it;
 			it = closeVector.erase(it);
 		}
-
+		closeVector.clear();
+		
 		return path;
 	}
-	bool SPathfinderSystem::IsOutOfNavGrid(const sf::Vector2i& inCoordinate, const sf::Vector2i& inMove, const sf::Vector2i& inSize)
+
+	bool SPathfinderSystem::IsOutOfNavGrid(const std::vector<int>& inNavGrid, const int targetIndex, 
+		const sf::Vector2i& currentNode, 
+		const sf::Vector2i& nextMovement, 
+		const int agentGridColumn, const int agentGridRow, const int gridColumns)
 	{
-		const sf::Vector2i newCoordinate(inCoordinate + inMove);
-		bool isDiagonalMove = inMove.x != 0 && inMove.y != 0;
-		if (isDiagonalMove)
+		const sf::Vector2i newCoordinate(currentNode + nextMovement);
+		for (int i = newCoordinate.x; i < newCoordinate.x + agentGridColumn; i++)
 		{
-			if ((navGrid[(inCoordinate.x + inMove.x) * navGridColumnSize + inCoordinate.y] == -1) ||
-				(navGrid[(inCoordinate.x * navGridColumnSize) + inCoordinate.y + inMove.y] == -1))
+			for (int j = newCoordinate.y; j < newCoordinate.y + agentGridRow; j++)
 			{
-				std::cout << "IsOutOfNavGrid at Diagonal == -1" << std::endl;
-				return true;
-			}
-		}
-		for (int i = newCoordinate.x; i < newCoordinate.x + inSize.x; i++)
-		{
-			for (int j = newCoordinate.y; j < newCoordinate.y + inSize.y; j++)
-			{
-				if (i < 0 || i >= navGridColumnSize ||
-					j < 0 || j >= navGridColumnSize)
+				//if (i < 0 || i >= inGridColumn || j < 0 || j >= inGridRow)
+				//{
+					//std::cout << "IsOutOfNavGrid" << i << "..." << inGridColumn
+					//	<< "," << inGridRow << "..." << j << std::endl;
+				//	return true;
+				//}
+
+				int currentIndex = (j * gridColumns) + i;
+				if (currentIndex >= inNavGrid.size())
 				{
-					std::cout << "IsOutOfNavGrid" << std::endl;
 					return true;
 				}
 
-				if (navGrid[i * navGridColumnSize + j] == -1)
+				if (inNavGrid[currentIndex] == 100)
 				{
-					std::cout << "IsOutOfNavGrid == -1" << std::endl;
+					if (currentIndex == targetIndex) 
+						return false;
 					return true;
 				}
 			}
 		}
-
 		return false;
 	}
-	uei::Node* SPathfinderSystem::FindNode(const std::vector<uei::Node*>& inNodes, const sf::Vector2i& coordinate)
+
+	Node* SPathfinderSystem::FindNode(const std::vector<Node*>& inNodes, const sf::Vector2i& coordinate)
 	{
 		for (auto* node : inNodes)
 		{
@@ -194,6 +219,7 @@ namespace uei
 		}
 		return nullptr;
 	}
+
 	int SPathfinderSystem::GetHeuristicCost(const sf::Vector2i& inCoordinate, const sf::Vector2i& inTargetCoordinate)
 	{
 		sf::Vector2i delta(abs(inCoordinate.x - inTargetCoordinate.x), abs(inCoordinate.y - inTargetCoordinate.y));
@@ -205,6 +231,8 @@ namespace uei
 			return 100 * (delta.x + delta.y);
 		case Heuristic::ManhattanOctagonal:
 			return 100 * (delta.x + delta.y) + (-60) * std::min(delta.x, delta.y);
+		default:
+			return 100;
 		}
 	}
 }

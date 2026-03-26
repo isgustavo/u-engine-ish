@@ -4,7 +4,8 @@
 #include "components/CMovementAnimation.h"
 #include "components/CIdleAnimation.h"
 #include "components/CSprite.cpp"
-#include <components/CMovement.h>
+#include "components/CMovement.h"
+#include "UEngine.h"
 
 namespace uei
 {
@@ -13,13 +14,16 @@ namespace uei
 
 	}
 
-	void SAnimationSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
+	void uei::SAnimationSystem::Update(UEngine& engine, std::vector<UEntity*> entities)
 	{
 		for (auto& e : entities)
 		{
-			auto* cMovement = e->GetComponent<CMovement>();
 			auto* cIdleAnimation = e->GetComponent<CIdleAnimation>();
 			auto* cMovementAnimation = e->GetComponent<CMovementAnimation>();
+
+			if (cIdleAnimation == nullptr || cMovementAnimation == nullptr) continue;
+
+			auto* cMovement = e->GetComponent<CMovement>();
 			auto* cSprite = e->GetComponent<uei::CSprite>();
 
 			if (cMovement == nullptr || cIdleAnimation == nullptr || cMovementAnimation == nullptr || cSprite == nullptr) continue;

@@ -4,6 +4,8 @@
 #include "components/CSprite.h"
 #include "components/CStaticDraw.h"
 
+const std::string STATIC = "S_";
+
 namespace uei
 {
 	SDrawSystem::SDrawSystem()
@@ -18,10 +20,8 @@ namespace uei
 		spriteMap.clear();
 	}
 
-	void SDrawSystem::Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities)
+	void SDrawSystem::Update(UEngine& engine, std::vector<UEntity*> entities)
 	{
-		const std::string STATIC = "S_";
-
 		transformMap.clear();
 		spriteMap.clear();
 
@@ -54,7 +54,7 @@ namespace uei
 		{
 			if (!dirtyMap[key]) continue;
 
-			std::cout << key << std::endl;
+			//std::cout << key << std::endl;
 
 			std::vector<CTransform*> transforms = value;
 			std::vector<CSprite*> sprites = spriteMap[key];
@@ -63,7 +63,9 @@ namespace uei
 			sf::VertexArray& vertexArray = vertexArrayMap[key];
 			for (int i = 0; i < transforms.size(); i++)
 			{
-				const sf::Vector2f p = transforms[i]->GetPosition();
+				sf::Vector2f p = transforms[i]->GetPosition();
+				sf::Vector2i test = PositionToGrid(transforms[i]->GetPosition(), engine.CurrentScene()->GridSize());
+				p = GridToPosition(test, engine.CurrentScene()->GridSize());
 
 				float left = p.x;
 				float right = p.x + engine.CurrentScene()->GridSize();
@@ -105,14 +107,17 @@ namespace uei
 				}
 			}
 		}
+	}
 
+	void SDrawSystem::Draw(UEngine& engine)
+	{
 		for (auto& [key, value] : vertexArrayMap)
 		{
 			sf::RenderStates states;
 
-			if(key.substr(0, 2) == STATIC)
+			if (key.substr(0, 2) == STATIC)
 				states.texture = &engine.Assets()->GetTexture(key.substr(2, key.length() - 2));
-			else 
+			else
 				states.texture = &engine.Assets()->GetTexture(key);
 
 			engine.RenderWindow().draw(value, states);

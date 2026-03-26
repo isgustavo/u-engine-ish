@@ -1,6 +1,7 @@
 #pragma once
 #include "USystem.h"
 #include <SFML/System/Vector2.hpp>
+#include <components/CMovementAnimation.h>
 
 namespace uei
 {
@@ -19,29 +20,38 @@ namespace uei
         Node* parent;
 
         Node(const sf::Vector2i& inPosition, Node* inParent = nullptr);
-        int GetScore();
+        int GetScore() const;
     };
 
     class SPathfinderSystem : public USystem
     {
     public:
-        SPathfinderSystem(Heuristic inHeuristic, std::vector<int>& inNavGrid, int inNavGridColumnSize, int inNavGridSqrSize);
+        SPathfinderSystem();
 
-        virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) override;
+        virtual std::string SystemName() const { return "SPathfinderSystem"; }
+        virtual bool UpdateEditorScene() { return true; }
+        virtual bool DrawEditorScene() { return true; }
+
+        virtual void Update(UEngine& engine, std::vector<UEntity*> entities) override;
 
     private:
         Heuristic heuristic;
-        std::vector<sf::Vector2i> gridCoordinateMoves;
-        std::vector<int>& navGrid;
-        int navGridColumnSize;
-        int navGridSqrSize;
-        std::vector<uei::Node*> openVector;
-        std::vector<uei::Node*> closeVector;
+        std::vector<Node*> openVector;
+        std::vector<Node*> closeVector;
 
-        const std::vector<sf::Vector2i> FindPath(const sf::Vector2i& inSourceCoordinate, const sf::Vector2i& inTargetCoordinate, const sf::Vector2i& inSourceSize);
-        void SetGridCoordinateMoves();
-        bool IsOutOfNavGrid(const sf::Vector2i& inCoordinate, const sf::Vector2i& inMove, const sf::Vector2i& inSize);
-        uei::Node* FindNode(const std::vector<uei::Node*>& inNodes, const sf::Vector2i& coordinate);
+        std::vector<sf::Vector2i> FindPath(const std::vector<int>& inNavGrid, 
+            const sf::Vector2i& targetGridPosition, const sf::Vector2i& agentGridPosition,
+            const std::vector<sf::Vector2i>& agentInitialInvalidGridMovement,
+            const std::vector<sf::Vector2i>& agentValidGridMovement,
+            const int agentGridColumn, const int agentGridRow, const int gridColumns);
+
+        bool IsOutOfNavGrid(const std::vector<int>& inNavGrid, const int targetIndex, 
+            const sf::Vector2i& currentNode, 
+            const sf::Vector2i& nextMovement,
+            const int agentGridColumn, const int agentGridRow, const int gridColumns);
+
+        Node* FindNode(const std::vector<Node*>& inNodes, const sf::Vector2i& coordinate);
+
         int GetHeuristicCost(const sf::Vector2i& inCoordinate, const sf::Vector2i& inTargetCoordinate);
     };
 }

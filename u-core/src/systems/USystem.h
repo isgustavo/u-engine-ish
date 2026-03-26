@@ -1,19 +1,24 @@
 #pragma once
-
-#include "entities/UEntity.h"
+#include "UEngine.h"
 
 #include <memory>
 #include <vector>
-#include <UEngine.h>
+
 
 namespace uei 
 {
     class USystem
     {
+        friend class UEditorScene;
     public:
         USystem();
         ~USystem();
 
-        virtual void Update(UEngine& engine, std::vector<std::unique_ptr<uei::UEntity>>& entities) = 0;
+        virtual std::string SystemName() const = 0;
+        virtual bool UpdateEditorScene() { return false; }
+        virtual bool DrawEditorScene() { return false; }
+
+        virtual void Update(UEngine& engine, std::vector<class UEntity*> entities) = 0;
+        virtual void Draw(UEngine& engine) {}
     };
 }

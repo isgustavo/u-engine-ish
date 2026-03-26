@@ -1,10 +1,26 @@
-#include "UEditorScene.h"
+﻿#include "UEditorScene.h"
 #include "UEditor.h"
+#include "UGameScene.h"
 #include "components/CTransform.h"
+#include "components/CPath.h"
 #include "components/CSprite.h"
+#include "components/CTarget.h"
+#include "components/CAnimation.h"
 #include "components/CIdleAnimation.h"
+#include "components/CMovement.h"
+#include "components/CMovementAnimation.h"
+#include "components/CObstacle.h"
+#include "components/CStaticDraw.h"
+#include "components/CPlayer.h"
+#include "components/CNavGridModifier.h"
+#include "components/CAgent.h"
 #include "systems/SDrawSystem.h"
 #include "systems/SAnimationSystem.h"
+#include "systems/SMovementSystem.h"
+#include "systems/SPathfinderSystem.h"
+#include "systems/SPathFollowSystem.h"
+#include "systems/SPathRequestSystem.h"
+#include "systems/SUpdateNavGridSystem.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics.hpp>
@@ -16,9 +32,10 @@
 #include <iostream>
 #include <fstream>
 
+
 namespace uei
 {
-    UEditorScene::UEditorScene(UEngine& inEngine, std::string levelName) : UScene(inEngine, levelName) { }
+    UEditorScene::UEditorScene(UEngine& inEngine) : UScene(inEngine, EMPTY) {}
 
     UEditorScene::~UEditorScene()
     {
@@ -30,8 +47,6 @@ namespace uei
     {
         bMainTab = true;
         bShowNavGrid = true;
-        AddSystem<SAnimationSystem>();
-        AddDrawSystem<SDrawSystem>();
     }
 
     void UEditorScene::OnUpdate(float deltaTime)
@@ -41,11 +56,45 @@ namespace uei
         if (bMainTab)
         {
             ImGui::Begin("Editor");
+
+            if (!bSceneLoaded)
+            {
+                ImGui::Text("Scene Name:");
+                ImGui::SameLine();
+                ImGui::InputText("##sceneName", editorNameBuffer, IM_ARRAYSIZE(editorNameBuffer));
+                ImGui::SameLine();
+                if (ImGui::Button("Open/Create"))
+                    LoadScene();
+            }
+            else 
+            {
+                ImGui::Text(("Scene Name: " + std::string(editorNameBuffer)).c_str());
+                ImGui::SameLine();
+                if (ImGui::Button("Save"))
+                {
+                    SaveScene();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Play"))
+                {
+                    //SaveScene();
+                    //engine.AddGameScene(levelNameLoaded);
+                    engine.SetScene(new UGameScene(engine, levelNameLoaded));
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Close"))
+                {
+                    CloseScene();
+                }
+            }
+
             if (ImGui::BeginTabBar("u-engine-ish"))
             {
                 ShowAssetsTab();
                 ShowPrefabTab();
-                ShowSceneTab();
+                //ShowSceneTab();
+                if(bSceneLoaded)
+                    ShowSystemTab();
                 ImGui::EndTabBar();
             }
             ImGui::End();
@@ -185,16 +234,16 @@ namespace uei
         {
             SaveScene();
         }
-        if (ImGui::Button("Save/Play"))
+        if (ImGui::Button("Play"))
         {
-            SaveScene();
-            engine.AddGameScene(levelNameLoaded);
+            //SaveScene();
+            //engine.AddGameScene(levelNameLoaded);
         }
-        if (ImGui::Button("Save/Close"))
-        {
-            SaveScene();
-            CloseScene();
-        }
+        //if (ImGui::Button("Save/Close"))
+        //{
+        //    SaveScene();
+        //    CloseScene();
+        //}
         if (ImGui::Button("Close"))
         {
             CloseScene();
@@ -534,7 +583,7 @@ namespace uei
 
                 if (ImGui::Selectable(UEditor::AllComponents()[i].c_str(), isSelected))
                 {
-                    prefab->AddComponent(UEditor::Create(UEditor::AllComponents()[i]), true);
+                    prefab->AddComponent(UEditor::CreateComponent(UEditor::AllComponents()[i]), true);
                 }
             }
             ImGui::EndCombo();
@@ -693,6 +742,105 @@ namespace uei
         ImGui::Image(id, ImVec2(thumbnailSize, thumbnailSize), uv0, uv1);
     }
 
+    void UEditorScene::ShowSystemTab()
+    {
+        if (ImGui::BeginTabItem("Systems"))
+        {
+            if (ImGui::Button("Save Systems"))
+            {
+                SaveScene();
+            }
+            
+            ImGui::Spacing();
+
+            ImGui::BeginChild("##systems", ImVec2(0, 200.0f), true);
+            for (int i = 0; i < systems.size(); i++)
+            {
+                ImGui::PushID(i);
+
+                //bool enable = false;
+                //int index = -1;
+                /*for (int j = 0; j < systems.size(); j++)
+                {
+                    if (systems[j]->SystemName() != UEditor::AllSystems()[i]) continue;
+                    enable = true;
+                    index = j;
+                    break;
+                }*/
+
+                //if (ImGui::Checkbox("##check", &enable))
+                //{
+                //    if (enable)
+                //    {
+                //        systems.push_back(UEditor::CreateSystem(UEditor::AllSystems()[i]));
+                //    }
+                //    else
+                //    {
+                //        if (index == -1) return;
+                //        systems.erase(systems.begin() + index);
+                //    }
+                //}
+
+                //ImGui::SameLine();
+
+                //ImGui::Text("%s", UEditor::AllSystems()[i].c_str());
+                ImGui::Text("%s", systems[i]->SystemName().c_str());
+                ImGui::SameLine(200);
+
+                if (ImGui::Button("UP") && i > 0)
+                {
+                    std::swap(systems[i], systems[i - 1]);
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("DOWN") && i < UEditor::AllSystems().size() - 1)
+                {
+                    std::swap(systems[i], systems[i + 1]);
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Remove"))
+                {
+                    systems.erase(systems.begin() + i);
+                }
+
+                ImGui::PopID();
+            }
+            ImGui::EndChild();
+
+            ImGui::BeginChild("##newSystems", ImVec2(0, 200.0f), true);
+            for (int i = 0; i < UEditor::AllSystems().size(); i++)
+            {
+                bool canAdd = true;
+                for (int j = 0; j < systems.size(); j++)
+                {
+                    if (systems[j]->SystemName() != UEditor::AllSystems()[i]) continue;
+
+                    canAdd = false;
+                    break;
+                }
+
+                if (!canAdd) continue;
+
+                ImGui::PushID(500 + i);
+                //std::cout << UEditor::AllSystems()[i].c_str() << std::endl;
+                ImGui::Text("%s", UEditor::AllSystems()[i].c_str());
+                ImGui::SameLine(200);
+
+                if (ImGui::Button("Add"))
+                {
+                    systems.push_back(UEditor::CreateSystem(UEditor::AllSystems()[i]));
+                }
+
+                ImGui::PopID();
+            }
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+    }
+
     void UEditorScene::CreateScene()
     {
         std::string levelPath = "Assets/" + std::string(editorNameBuffer) + ".txt";
@@ -729,7 +877,7 @@ namespace uei
             std::string content;
             content.clear();
 
-            content = LEVEL + " " + std::to_string(gridColumn) + " " + std::to_string(gridRow) + " " + std::to_string(gridSize) + "\n";
+            content = LEVEL + " " + std::to_string(gridColumns) + " " + std::to_string(gridRows) + " " + std::to_string(gridSize) + "\n";
 
             /*for (const auto& [key, value] : prefabs)
             {
@@ -746,6 +894,11 @@ namespace uei
                 CTransform* transform = e->GetComponent<CTransform>();
                 if (transform == nullptr) continue;
                 content += ENTITY + " " + e->Name() + " " + std::to_string(transform->GetPosition().x) + " " + std::to_string(transform->GetPosition().y) + "\n";
+            }
+
+            for (auto& e : systems)
+            {
+                content += SYSTEM + " " + e->SystemName() + "\n";
             }
 
             std::ofstream out(levelPath);
@@ -797,15 +950,15 @@ namespace uei
             sf::Vector2f gridMousePosition = sf::Vector2f((mousePosition.x / gridSize) * gridSize,
                 (mousePosition.y / gridSize) * gridSize);
 
-            for (auto& e : entities)
+            for (auto* e : entities)
             {
-                CTransform* transform = e.get()->GetComponent<CTransform>();
+                CTransform* transform = e->GetComponent<CTransform>();
                 if (transform != nullptr)
                 {
                     if (transform->GetPosition().x == gridMousePosition.x &&
                         transform->GetPosition().y == gridMousePosition.y)
                     {
-                        e.get()->SetActive(false);
+                        e->SetActive(false);
                         break;
                     }
                 }
@@ -836,4 +989,23 @@ namespace uei
     }
 }
 
+//REGISTER_COMPONENT(CTarget);
+//REGISTER_COMPONENT(CAnimation);
+REGISTER_COMPONENT(CAgent);
+REGISTER_COMPONENT(CNavGridModifier);
+REGISTER_COMPONENT(CPlayer);
+REGISTER_COMPONENT(CObstacle);
+REGISTER_COMPONENT(CStaticDraw);
+REGISTER_COMPONENT(CIdleAnimation);
+REGISTER_COMPONENT(CMovement);
+REGISTER_COMPONENT(CMovementAnimation);
+REGISTER_COMPONENT(CSprite);
+REGISTER_COMPONENT(CTransform);
 
+REGISTER_SYSTEM(SAnimationSystem);
+REGISTER_SYSTEM(SDrawSystem);
+REGISTER_SYSTEM(SMovementSystem);
+REGISTER_SYSTEM(SPathfinderSystem);
+REGISTER_SYSTEM(SPathFollowSystem);
+REGISTER_SYSTEM(SPathRequestSystem);
+REGISTER_SYSTEM(SUpdateNavGridSystem);

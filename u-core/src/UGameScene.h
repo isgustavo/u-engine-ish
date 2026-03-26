@@ -15,7 +15,5 @@ namespace uei
 		virtual void OnMouseLeft() override;
 		virtual void OnMouseRight() override;
 
-	private:
-
 	};
 }

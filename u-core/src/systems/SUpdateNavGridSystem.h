@@ -3,18 +3,16 @@
 
 namespace uei
 {
-    class SAnimationSystem : public USystem
+    class SUpdateNavGridSystem : public USystem
     {
     public:
-        SAnimationSystem();
+        SUpdateNavGridSystem();
 
-        virtual std::string SystemName() const { return "SAnimationSystem"; }
+        virtual std::string SystemName() const { return "SUpdateNavGridSystem"; }
         virtual bool UpdateEditorScene() { return true; }
         virtual bool DrawEditorScene() { return true; }
 
         virtual void Update(UEngine& engine, std::vector<UEntity*> entities) override;
-
-    private:
-        SpriteAsset* CreateAnimationSpriteAsset(const AnimationAsset* animationAsset, const float deltaTime);
+        virtual void Draw(UEngine& engine) override;
     };
 }

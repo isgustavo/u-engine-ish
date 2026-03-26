@@ -19,6 +19,7 @@ inline const std::string TEXTURE = "Texture";
 inline const std::string SPRITE = "Sprite";
 inline const std::string ANIMATION = "Animation";
 inline const std::string FONT = "Font";
+inline const std::string SYSTEM = "System";
 inline const std::string COMPONENT = "Component";
 inline const std::string ENTITY = "Entity";
 inline const std::string EMPTY = "Empty";
@@ -28,46 +29,32 @@ namespace uei
 	class UEngine
 	{
 	public:
-		UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, 
-			const std::string& inStartLevelName = EMPTY);
+		UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit);
 		~UEngine();
-
-		void AddGameScene(std::string levelName);
 
 		UAsset* Assets() { return assets; }
 		UScene* CurrentScene() { return currentScene; }
+		void SetScene(UScene* scene) 
+		{ 
+			scenes.push_back(scene);
+			currentScene = scene;
+		}
 		sf::RenderWindow& RenderWindow() { return renderWindow; }
-
-		const float DeltaTime() const { return fixedDeltaTime; }
-
-		void Clear();
-		sf::Vector2f& ScreenSize();
 
 		void Start();
 		void Update();
+		void Clear();
 
-		template<typename T>
-		T* AddScene(std::string levelName)
-		{
-			T* t = new T(*this, levelName);
-			scenes.push_back(t);
-			return t;
-		}
+		const float DeltaTime() const { return fixedDeltaTime; }
+		const sf::Vector2f& GetScreenSize() { return screenSize; }
 
 	private:
-
-		sf::Vector2f screenSize;
-		bool bShowEditor;
-
-		//sf::Font font;
-
-		const std::string startLevelName;
-		const float fixedDeltaTime;
-
-		sf::RenderWindow renderWindow;
-
 		UAsset* assets;
 		UScene* currentScene;
+		sf::RenderWindow renderWindow;
 		std::vector<UScene*> scenes;
+
+		sf::Vector2f screenSize;
+		const float fixedDeltaTime;
 	};
 }

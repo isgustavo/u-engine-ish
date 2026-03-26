@@ -3,18 +3,6 @@
 #include "editor/UEditorScene.h"
 #include "UGameScene.h"
 #include "editor/UEditor.h"
-#include "components/CTransform.h"
-#include "components/CPath.h"
-#include "components/CSprite.h"
-#include "components/CTarget.h"
-#include "components/CAnimation.h"
-#include "components/CIdleAnimation.h"
-#include "components/CMovement.h"
-#include "components/CMovementAnimation.h"
-#include "components/CObstacle.h"
-#include "components/CStaticDraw.h"
-#include "components/CPlayer.h"
-#include "components/CNavGridModifier.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -36,11 +24,10 @@
 
 namespace uei
 {
-    UEngine::UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit, const std::string& inStartLevelName) :
+    UEngine::UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit) :
         screenSize(sf::Vector2f((float)inWidth, (float)inHeight)), 
         renderWindow(sf::VideoMode({ inWidth, inHeight }), windowName), 
-        fixedDeltaTime(1000.f / framerateLimit),
-        startLevelName(inStartLevelName)
+        fixedDeltaTime(1000.f / framerateLimit)
     {
         //assets = std::make_unique<UAsset>();
         //assets->LoadFromFile(assetFilePath);
@@ -98,18 +85,10 @@ namespace uei
         currentScene = nullptr;
     }
 
-    sf::Vector2f& UEngine::ScreenSize()
-    {
-        return screenSize;
-    }
     void UEngine::Start()
     {
         assets->Load(*this);
         scenes.clear();
-        if(startLevelName == EMPTY)
-            currentScene = AddScene<UEditorScene>(startLevelName);
-        else 
-            currentScene = AddScene<UGameScene>(startLevelName);
     }
   
     void UEngine::Update()
@@ -179,11 +158,6 @@ namespace uei
         ImGui::SFML::Shutdown();
     }
 
-    void UEngine::AddGameScene(std::string levelName)
-    {
-        currentScene = AddScene<UGameScene>(levelName);
-    }
-
     void UEngine::Clear()
     {
         scenes.clear();
@@ -191,15 +165,3 @@ namespace uei
         currentScene = nullptr;
     }
 }
-
-//REGISTER_COMPONENT(CTarget);
-//REGISTER_COMPONENT(CAnimation);
-REGISTER_COMPONENT(CNavGridModifier);
-REGISTER_COMPONENT(CPlayer);
-REGISTER_COMPONENT(CObstacle);
-REGISTER_COMPONENT(CStaticDraw);
-REGISTER_COMPONENT(CIdleAnimation);
-REGISTER_COMPONENT(CMovement);
-REGISTER_COMPONENT(CMovementAnimation);
-REGISTER_COMPONENT(CSprite);
-REGISTER_COMPONENT(CTransform);

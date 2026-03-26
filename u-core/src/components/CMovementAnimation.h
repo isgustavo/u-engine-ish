@@ -49,9 +49,9 @@ inline EMovement StringToMovement(std::string movement)
 	if (movement == "UP")
 		return EMovement::UP;
 	if (movement == "LEFT")
-		return EMovement::DOWN;
+		return EMovement::LEFT;
 	if (movement == "DOWN")
-		return EMovement::UP;
+		return EMovement::DOWN;
 	if (movement == "RIGHT")
 		return EMovement::RIGHT;
 	if (movement == "UP_LEFT")
@@ -62,6 +62,70 @@ inline EMovement StringToMovement(std::string movement)
 		return EMovement::DOWN_RIGHT;
 	if (movement == "UP_RIGHT")
 		return EMovement::UP_RIGHT;
+	return EMovement::NONE;
+}
+
+inline sf::Vector2i MovementToVector(EMovement movement)
+{
+	switch (movement)
+	{
+	case EMovement::DOWN:
+		return sf::Vector2i(0, 1);
+	case EMovement::LEFT:
+		return sf::Vector2i(-1, 0);
+	case EMovement::UP:
+		return sf::Vector2i(0, -1);
+	case EMovement::RIGHT:
+		return sf::Vector2i(1, 0);
+	case EMovement::UP_LEFT:
+		return sf::Vector2i(-1, 1);
+	case EMovement::DOWN_LEFT:
+		return sf::Vector2i(-1, -1);
+	case EMovement::DOWN_RIGHT:
+		return sf::Vector2i(1, -1);
+	case EMovement::UP_RIGHT:
+		return sf::Vector2i(1, 1);
+	default:
+		return sf::Vector2i(0, 0);
+	}
+}
+
+inline EMovement InverseMovement(EMovement movement)
+{
+	switch (movement)
+	{
+	case EMovement::DOWN:
+		return EMovement::UP;
+	case EMovement::LEFT:
+		return EMovement::RIGHT;
+	case EMovement::UP:
+		return EMovement::DOWN;
+	case EMovement::RIGHT:
+		return EMovement::LEFT;
+	case EMovement::UP_LEFT:
+		return EMovement::DOWN_RIGHT;
+	case EMovement::DOWN_LEFT:
+		return EMovement::UP_RIGHT;
+	case EMovement::DOWN_RIGHT:
+		return EMovement::UP_LEFT;
+	case EMovement::UP_RIGHT:
+		return EMovement::DOWN_LEFT;
+	default:
+		return EMovement::NONE;
+	}
+}
+
+inline EMovement VectorToMovement(sf::Vector2i& movement)
+{
+	if (movement.x == 0 && movement.y == 1) return EMovement::DOWN;
+	if (movement.x == -1 && movement.y == 0) return EMovement::LEFT;
+	if (movement.x == 0 && movement.y == -1) return EMovement::UP;
+	if (movement.x == 1 && movement.y == 0) return EMovement::RIGHT;
+	if (movement.x == -1 && movement.y == 1) return EMovement::UP_LEFT;
+	if (movement.x == -1 && movement.y == -1) return EMovement::DOWN_LEFT;
+	if (movement.x == 1 && movement.y == -1) return EMovement::DOWN_RIGHT;
+	if (movement.x == 1 && movement.y == 1) return EMovement::UP_RIGHT;
+
 	return EMovement::NONE;
 }
 
@@ -98,6 +162,6 @@ namespace uei
 
 		std::unordered_map<std::string, std::string> animations;
 
-		std::vector<std::string> allLocomotionTypesName;
+
 	};
 }

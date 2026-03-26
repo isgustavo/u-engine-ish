@@ -2,8 +2,6 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <imgui.h>
-#include <fstream>
-#include <sstream>
 
 namespace uei 
 {
@@ -12,8 +10,9 @@ namespace uei
 
     }
 
-    CTransform::CTransform(const sf::Vector2f& inPosition) : CTransform()
+    CTransform::CTransform(const sf::Vector2f& inOriginalPosition, const sf::Vector2f& inPosition) : CTransform()
     {
+        originalPosition = inOriginalPosition;
         positionLastUpdate = inPosition;
         position = inPosition;
     }
@@ -23,12 +22,17 @@ namespace uei
 
     }
 
-    sf::Vector2f& uei::CTransform::GetPosition()
+    void CTransform::Start(UEngine& engine)
+    {
+        originalPosition = position;
+    }
+
+    sf::Vector2f& CTransform::GetPosition()
     {
         return position;
     }
 
-    sf::Vector2f& uei::CTransform::GetPositionLastUpdate()
+    sf::Vector2f& CTransform::GetPositionLastUpdate()
     {
         return positionLastUpdate;
     }
@@ -39,32 +43,16 @@ namespace uei
         position = inPosition;
     }
 
-    bool CTransform::IsMoving(const float threshould) const
+    bool CTransform::IsMoving(const float threshold) const
     {
         sf::Vector2f delta = position - positionLastUpdate;
-        return (delta.x * delta.x + delta.y * delta.y) > threshould * threshould;
+        return (delta.x * delta.x + delta.y * delta.y) > threshold * threshold;
     }
 
-    void CTransform::OnShowEditor(UEngine& engine)
+    bool CTransform::IsEqual(const sf::Vector2f& otherPosition, const float threshold) const
     {
-
-    }
-    
-    void uei::CTransform::LoadComponent(std::istream & in)
-    {
-        //float x, y;
-        //in >> x >> y;
-        //position = sf::Vector2f(x, y);
-        Deserialize(in, position.x, position.y);
-        positionLastUpdate = position;
-    }
-
-    std::string CTransform::SaveComponent() const
-    {
-        //std::ostringstream ss;
-        //ss << position.x << " " << position.y;
-        //return ss.str();
-        return Serialize(position.x, position.y);
+        sf::Vector2f delta = position - otherPosition;
+        return (delta.x * delta.x + delta.y * delta.y) <= threshold * threshold;
     }
 }
 

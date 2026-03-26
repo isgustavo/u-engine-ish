@@ -26,31 +26,14 @@ namespace uei
 		UScene(UEngine& inEngine, std::string levelName);
 		~UScene();
 
-		template<typename T, typename... Args>
-		void AddStartSystem(Args&&... args)
+		void AddSystem(USystem* system)
 		{
-			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
-
-			startSystems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
-		}
-
-		template<typename T, typename... Args>
-		void AddSystem(Args&&... args)
-		{
-			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
-
-			systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
-		}
-
-		template<typename T, typename... Args>
-		void AddDrawSystem(Args&&... args)
-		{
-			static_assert(std::is_base_of_v<uei::USystem, T>, "T must derive from USystem");
-
-			drawSystems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+			systems.push_back(system);
 		}
 		
-		std::vector<std::unique_ptr<uei::UEntity>>& Entities() { return entities; }
+		std::vector<UEntity*> Entities() { return entities; }
+
+		virtual bool IsEditorScene() { return false; }
 
 		virtual void OnStart() = 0;
 		virtual void OnUpdate(float deltaTime) = 0;
@@ -60,27 +43,28 @@ namespace uei
 		virtual void OnMouseRight() = 0;
 
 		sf::View& View() { return view; }
-		int GridColumn() { return gridColumn; }
-		int GridRow() { return gridRow; }
-		int GridSize() { return gridSize; }
+		int GridColumns() const { return gridColumns; }
+		int GridRows() const { return gridRows; }
+		int GridSize() const { return gridSize; }
 
-		void SetNavGridDirty() { bIsNavGridDirty = true; }
+		std::vector<int>& GetNavGrid() { return navGrid; }
+		bool ShowNavGrid() { return bShowNavGrid; }
+		bool GetNavGridDirty() { return bIsNavGridDirty; }
+		void SetNavGridDirty(bool value) { bIsNavGridDirty = value; }
 
 	protected:
 		UEngine& engine;
 		sf::View view;
 
-		std::vector<std::unique_ptr<uei::UEntity>> entities;
-		std::vector<std::unique_ptr<uei::USystem>> startSystems;
-		std::vector<std::unique_ptr<uei::USystem>> systems;
-		std::vector<std::unique_ptr<uei::USystem>> drawSystems;
+		std::vector<UEntity*> entities;
+		std::vector<USystem*> systems;
 		std::vector<int> navGrid;
 
-		void AddEntity(UEntity* entity, sf::Vector2f position);
+		void AddEntity(UEntity* entity, const sf::Vector2f& position);
 		void AddEntity(UEntity* entity);
 
-		int gridColumn;
-		int gridRow;
+		int gridColumns;
+		int gridRows;
 		int gridSize;
 		bool bShowNavGrid = true;
 
@@ -92,7 +76,6 @@ namespace uei
 
 		std::string levelName;
 
-		std::map<std::string, std::vector<uei::UEntity*>> entitiesMap;
 		std::vector<uei::UEntity*> toAdd;
 
 		bool bIsPause;
@@ -101,12 +84,12 @@ namespace uei
 		bool bIsNavGridDirty = false;
 		
 
-		void Start();
 		void Load(std::string levelName);
+		void Start();
 		void Update();
 		//void FixedUpdate(float fixedDeltaTime);
-		void UpdateNavGrid();
-		void ShowNavGrid();
+		//void UpdateNavGrid();
+		//void ShowNavGrid();
 
 		void AddNewEntities();
 		void RemoveInactiveEntities();
