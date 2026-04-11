@@ -10,6 +10,7 @@ namespace uei
 		~UGameScene();
 
 		virtual void OnStart() override;
+		virtual void OnInput(const std::optional<class sf::Event> event) override;
 		virtual void OnUpdate(float deltaTime) override;
 		virtual void OnDraw() override;
 		virtual void OnMouseLeft() override;

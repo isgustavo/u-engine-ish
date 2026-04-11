@@ -1,5 +1,5 @@
 #pragma once
-#include "USystem.h"
+#include <systems/USystem.h>
 
 namespace uei
 {
@@ -12,9 +12,9 @@ namespace uei
         virtual bool UpdateEditorScene() { return true; }
         virtual bool DrawEditorScene() { return true; }
 
-        virtual void Update(UEngine& engine, std::vector<UEntity*> entities) override;
+        virtual void Update(class UEngine& engine, std::vector<class UEntity*> entities) override;
 
     private:
-        SpriteAsset* CreateAnimationSpriteAsset(const AnimationAsset* animationAsset, const float deltaTime);
+        class SpriteAsset* CreateAnimationSpriteAsset(const class AnimationAsset* animationAsset, const float deltaTime);
     };
 }

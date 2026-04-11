@@ -1,4 +1,4 @@
-#include "CMovement.h"
+#include "CGridMovement.h"
 #include "CMovementAnimation.h"
 #include "CNavGridModifier.h"
 #include "entities/UEntity.h"
@@ -9,24 +9,34 @@
 
 namespace uei
 {
-	CMovement::CMovement() : UComponent()
+	CGridMovement::CGridMovement() : UComponent()
 	{
+		lastMovement = EMovement::UP;
 		currentMovement = EMovement::NONE;
-		lastMovement = currentMovement;
 		gridMovement = EGrid::GRID_4;
 	}
 
-	CMovement::CMovement(EGrid inGridMovement) : CMovement()
+	CGridMovement::CGridMovement(EGrid inGridMovement) : CGridMovement()
 	{
 		gridMovement = inGridMovement;
 	}
 
-	CMovement::~CMovement()
+	CGridMovement::~CGridMovement()
 	{
 
 	}
 
-	std::vector<sf::Vector2i> CMovement::GetValidGridMovement() const
+	void CGridMovement::SetNextMovement(sf::Vector2i& startPosition, sf::Vector2i& nextPosition, EMovement movement)
+	{
+		lastMovement = currentMovement;
+		currentMovement = movement;
+		gridMovementLerpTime = 0.0f;
+		gridStartMovement = startPosition;
+		gridTargetMovement = nextPosition;
+		SetStop(false);
+	}
+
+	std::vector<sf::Vector2i> CGridMovement::GetValidGridMovement() const
 	{
 		std::vector<sf::Vector2i> validGridMovement;
 		validGridMovement.push_back(MovementToVector(EMovement::UP));
@@ -45,7 +55,7 @@ namespace uei
 		return validGridMovement;
 	}
 
-	void CMovement::OnShowEditor(UEngine& engine)
+	void CGridMovement::OnShowEditor(UEngine& engine)
 	{
 		std::string gridMovementName = GridToString(gridMovement);
 		ImGui::PushItemWidth(260);
@@ -68,19 +78,19 @@ namespace uei
 		ImGui::PopItemWidth();
 	}
 
-	int uei::CMovement::GetEditorSize() const
+	int uei::CGridMovement::GetEditorSize() const
 	{
 		return 70;
 	}
 	
-	void uei::CMovement::LoadComponent(std::istream& in)
+	void uei::CGridMovement::LoadComponent(std::istream& in)
 	{
 		std::string a0;
 		Deserialize(in, a0);
 		gridMovement = StringToGrid(a0);
 	}
 	
-	std::string CMovement::SaveComponent() const
+	std::string CGridMovement::SaveComponent() const
 	{
 		return Serialize(GridToString(gridMovement));
 	}

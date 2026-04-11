@@ -143,7 +143,7 @@
     <ClCompile Include="src\components\CAgent.cpp" />
     <ClCompile Include="src\components\CAnimation.cpp" />
     <ClCompile Include="src\components\CIdleAnimation.cpp" />
-    <ClCompile Include="src\components\CMovement.cpp" />
+    <ClCompile Include="src\components\CGridMovement.cpp" />
     <ClCompile Include="src\components\CMovementAnimation.cpp" />
     <ClCompile Include="src\components\CNavGridModifier.cpp" />
     <ClCompile Include="src\components\CObstacle.cpp" />
@@ -161,7 +161,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\systems\SAnimationSystem.cpp" />
     <ClCompile Include="src\systems\SDrawSystem.cpp" />
-    <ClCompile Include="src\systems\SMovementSystem.cpp" />
+    <ClCompile Include="src\systems\SGridMovementSystem.cpp" />
     <ClCompile Include="src\systems\SPathfinderSystem.cpp" />
     <ClCompile Include="src\systems\SPathFollowSystem.cpp" />
     <ClCompile Include="src\systems\SPathRequestSystem.cpp" />
@@ -288,7 +288,7 @@
     <ClInclude Include="src\components\CCircle.h" />
     <ClInclude Include="src\components\CFindPathTo.h" />
     <ClInclude Include="src\components\CIdleAnimation.h" />
-    <ClInclude Include="src\components\CMovement.h" />
+    <ClInclude Include="src\components\CGridMovement.h" />
     <ClInclude Include="src\components\CMovementAnimation.h" />
     <ClInclude Include="src\components\CNavGridModifier.h" />
     <ClInclude Include="src\components\CObstacle.h" />
@@ -308,7 +308,7 @@
     <ClInclude Include="src\systems\SPathFollowSystem.h" />
     <ClInclude Include="src\systems\SAnimationSystem.h" />
     <ClInclude Include="src\systems\SDrawSystem.h" />
-    <ClInclude Include="src\systems\SMovementSystem.h" />
+    <ClInclude Include="src\systems\SGridMovementSystem.h" />
     <ClInclude Include="src\systems\SPathfinderSystem.h" />
     <ClInclude Include="src\systems\SPathRequestSystem.h" />
     <ClInclude Include="src\systems\SUpdateNavGridSystem.h" />

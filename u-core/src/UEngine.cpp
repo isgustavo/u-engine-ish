@@ -27,7 +27,7 @@ namespace uei
     UEngine::UEngine(unsigned int inWidth, unsigned int inHeight, const std::string& windowName, unsigned int framerateLimit) :
         screenSize(sf::Vector2f((float)inWidth, (float)inHeight)), 
         renderWindow(sf::VideoMode({ inWidth, inHeight }), windowName), 
-        fixedDeltaTime(1000.f / framerateLimit)
+        fixedDeltaTime(1.f / framerateLimit)
     {
         //assets = std::make_unique<UAsset>();
         //assets->LoadFromFile(assetFilePath);
@@ -94,65 +94,84 @@ namespace uei
     void UEngine::Update()
     {
         sf::Clock clock;
-        float startTime = 0.0f;
+        sf::Time time = clock.restart();
+        float delta = DeltaTime();
         while (renderWindow.isOpen())
         {
-            sf::Time time = clock.restart();
-            float startTime = time.asSeconds();
-            while (const auto event = renderWindow.pollEvent())
-            {
-                ImGui::SFML::ProcessEvent(renderWindow, *event);
-
-                if (event->is<sf::Event::Closed>())
-                {
-                    renderWindow.close();
-                }
-
-                if (event->is<sf::Event::MouseButtonPressed>())
-                {
-                    if (!ImGui::GetIO().WantCaptureMouse && currentScene != nullptr)
-                    {
-                        const auto& mouse = event->getIf<sf::Event::MouseButtonPressed>();
-
-                        if (mouse->button == sf::Mouse::Button::Left)
-                        {
-                            currentScene->OnMouseLeft();
-                        }
-                        if (mouse->button == sf::Mouse::Button::Right)
-                        {
-                            currentScene->OnMouseRight();
-                        }
-                    }
-                }
-            }
-
-            ImGui::SFML::Update(renderWindow, time);
-            
-            if (currentScene != nullptr && !currentScene->bIsStarted)
-                currentScene->Start();
-
-            if(currentScene != nullptr)
-                currentScene->Update();
-
-            //if (currentScene != nullptr)
-            //{
-            //    while (deltaTimeAccumulator >= fixedDeltaTime)
-            //    {
-            //        currentScene->Update(fixedDeltaTime);
-            //    }
-            //}
-
-            renderWindow.clear();
-            
             if (currentScene != nullptr)
-                currentScene->Draw();
-
-            ImGui::SFML::Render(renderWindow);
-            renderWindow.display();
+                currentScene->Input();
 
             time = clock.restart();
-            float elapsed = time.asSeconds() - startTime;
-            Sleep(std::max(0.f, DeltaTime() - elapsed));
+            delta -= time.asSeconds();// -lastTime;
+            //elapsed = std::max(0.f, DeltaTime() - elapsed);
+            //Sleep(std::max(0.f, DeltaTime() - elapsed));
+
+            //std::cout << "delta" << delta << std::endl;
+
+            if (delta <= 0.0f)
+            {
+                //std::cout << "Update DELTA" << std::endl;
+                //time = clock.restart();
+                //startTime = time.asSeconds();
+
+                ImGui::SFML::Update(renderWindow, time);
+
+                if (currentScene != nullptr && !currentScene->bIsStarted)
+                    currentScene->Start();
+
+                //if (currentScene != nullptr)
+                //    currentScene->Input();
+
+                /*while (const auto event = renderWindow.pollEvent())
+                {
+                    ImGui::SFML::ProcessEvent(renderWindow, *event);
+
+                    if (event->is<sf::Event::Closed>())
+                    {
+                        renderWindow.close();
+                    }
+
+                    if (event->is<sf::Event::MouseButtonPressed>())
+                    {
+                        if (!ImGui::GetIO().WantCaptureMouse && currentScene != nullptr)
+                        {
+                            const auto& mouse = event->getIf<sf::Event::MouseButtonPressed>();
+
+                            if (mouse->button == sf::Mouse::Button::Left)
+                            {
+                                currentScene->OnMouseLeft();
+                            }
+                            if (mouse->button == sf::Mouse::Button::Right)
+                            {
+                                currentScene->OnMouseRight();
+                            }
+                        }
+                    }
+                }*/
+
+                if (currentScene != nullptr)
+                    currentScene->Update();
+
+                //if (currentScene != nullptr)
+                //{
+                //    while (deltaTimeAccumulator >= fixedDeltaTime)
+                //    {
+                //        currentScene->Update(fixedDeltaTime);
+                //    }
+                //}
+
+                renderWindow.clear();
+
+                if (currentScene != nullptr)
+                    currentScene->Draw();
+
+                ImGui::SFML::Render(renderWindow);
+                renderWindow.display();
+
+                //time = clock.restart();
+                //lastTime = time.;
+                delta = DeltaTime();
+            }
         }
 
         ImGui::SFML::Shutdown();

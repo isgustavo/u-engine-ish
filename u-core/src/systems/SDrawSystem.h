@@ -1,5 +1,7 @@
 #pragma once
 #include "USystem.h"
+#include <unordered_map>
+#include <SFML/Graphics/VertexArray.hpp>
 
 namespace uei
 {
@@ -13,11 +15,11 @@ namespace uei
         virtual bool UpdateEditorScene() { return true; }
         virtual bool DrawEditorScene() { return true; }
 
-        virtual void Update(UEngine& engine, std::vector<UEntity*> entities) override;
-        virtual void Draw(UEngine& engine) override;
+        virtual void Update(class UEngine& engine, std::vector<class UEntity*> entities) override;
+        virtual void Draw(class UEngine& engine) override;
 
     protected:
-        std::unordered_map<std::string, class sf::VertexArray> vertexArrayMap;
+        std::unordered_map<std::string, sf::VertexArray> vertexArrayMap;
         std::unordered_map <std::string, std::vector<class CTransform*>> transformMap;
         std::unordered_map <std::string, std::vector<class CSprite*>> spriteMap;
     };

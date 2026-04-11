@@ -63,7 +63,7 @@ namespace uei
 		const std::unordered_map<std::string, uei::AnimationAsset>& Animations() { return animations; }
 		const std::vector<std::string>& AnimationNames() const { return animationNames; }
 
-		const uei::UEntity& GetPrefab(const std::string& prefabName) const;
+		UEntity* GetPrefab(const std::string& prefabName) const;
 		void RemovePrefab(const std::string& prefabName);
 		const std::unordered_map<std::string, uei::UEntity*>& Prefabs() { return prefabs; }
 

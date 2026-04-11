@@ -7,7 +7,7 @@
 #include "components/CTarget.h"
 #include "components/CAnimation.h"
 #include "components/CIdleAnimation.h"
-#include "components/CMovement.h"
+#include "components/CGridMovement.h"
 #include "components/CMovementAnimation.h"
 #include "components/CObstacle.h"
 #include "components/CStaticDraw.h"
@@ -16,7 +16,7 @@
 #include "components/CAgent.h"
 #include "systems/SDrawSystem.h"
 #include "systems/SAnimationSystem.h"
-#include "systems/SMovementSystem.h"
+#include "systems/SGridMovementSystem.h"
 #include "systems/SPathfinderSystem.h"
 #include "systems/SPathFollowSystem.h"
 #include "systems/SPathRequestSystem.h"
@@ -24,6 +24,7 @@
 
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -31,7 +32,6 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-
 
 namespace uei
 {
@@ -47,6 +47,26 @@ namespace uei
     {
         bMainTab = true;
         bShowNavGrid = true;
+    }
+
+    void UEditorScene::OnInput(const std::optional<sf::Event> event)
+    {
+        if (event->is<sf::Event::MouseButtonPressed>())
+        {
+            if (!ImGui::GetIO().WantCaptureMouse)
+            {
+                const auto& mouse = event->getIf<sf::Event::MouseButtonPressed>();
+
+                if (mouse->button == sf::Mouse::Button::Left)
+                {
+                    OnMouseLeft();
+                }
+                if (mouse->button == sf::Mouse::Button::Right)
+                {
+                    OnMouseRight();
+                }
+            }
+        }
     }
 
     void UEditorScene::OnUpdate(float deltaTime)
@@ -93,8 +113,11 @@ namespace uei
                 ShowAssetsTab();
                 ShowPrefabTab();
                 //ShowSceneTab();
-                if(bSceneLoaded)
+                if (bSceneLoaded)
+                {
                     ShowSystemTab();
+                    ShowInputTab();
+                }
                 ImGui::EndTabBar();
             }
             ImGui::End();
@@ -121,18 +144,16 @@ namespace uei
             CSprite* cSprite = prefab->GetComponent<CSprite>();
             
             sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-            int x = ((mousePosition.x / gridSize) * gridSize) + (cSprite->FlipX() ? gridSize : 0);
-            int y = ((mousePosition.y / gridSize) * gridSize) + (cSprite->FlipY() ? gridSize : 0);
 
-            cTransform->SetPosition(sf::Vector2f(x, y));
+            int x = (mousePosition.x / GridSize) * GridSize + (cSprite->FlipX() ? GridSize + (GridSize * 0.5f) : GridSize * 0.5f);
+            int y = (mousePosition.y / GridSize) * GridSize + (cSprite->FlipY() ? GridSize + (GridSize * 0.5f) : GridSize * 0.5f);
+
+            cTransform->SetPosition(sf::Vector2i(x, y));
         }
     }
 
     void UEditorScene::OnDraw()
     {
-        if (bSceneLoaded)
-            DrawGrid();
-
         engine.RenderWindow().setView(view);
 
         if (bPrefabSelected)
@@ -148,7 +169,7 @@ namespace uei
             {
                 if (cIdleAnimation->GetAnimationAsset() != nullptr)
                 {
-                    const AnimationAsset* animationAsset = cIdleAnimation->GetAnimationAsset();// engine.Assets()->GetAnimation(cIdleAnimation->GetIdleAnimationName());
+                    const AnimationAsset* animationAsset = cIdleAnimation->GetAnimationAsset();
                     textureName = animationAsset->TextureName;
                     int currentAnimationFrame = (int)(currentAnimationDeltaTime * animationAsset->Speed) % animationAsset->Frame;
                     x = animationAsset->X + (currentAnimationFrame * animationAsset->Width);
@@ -173,10 +194,11 @@ namespace uei
             }
 
             sf::Sprite sprite = sf::Sprite(engine.Assets()->GetTexture(textureName), sf::IntRect({ x, y }, { width, height }));
-            sprite.setScale(sf::Vector2f((flipX ? -1 : 1) * (gridSize / sprite.getTextureRect().size.x),
-                (flipY ? -1 : 1) * gridSize / sprite.getTextureRect().size.y));
+            sprite.setScale(sf::Vector2f((flipX ? -1 : 1) * (GridSize / sprite.getTextureRect().size.x),
+                (flipY ? -1 : 1) * GridSize / sprite.getTextureRect().size.y));
 
-            sprite.setPosition(cTransform->GetPosition());
+            sf::Vector2i position = cTransform->GetPosition();
+            sprite.setPosition(sf::Vector2f(position.x, position.y));
 
             engine.RenderWindow().draw(sprite);
         }
@@ -746,12 +768,12 @@ namespace uei
     {
         if (ImGui::BeginTabItem("Systems"))
         {
-            if (ImGui::Button("Save Systems"))
-            {
-                SaveScene();
-            }
-            
-            ImGui::Spacing();
+            //if (ImGui::Button("Save Systems"))
+            //{
+            //    SaveScene();
+            //}
+            //
+            //ImGui::Spacing();
 
             ImGui::BeginChild("##systems", ImVec2(0, 200.0f), true);
             for (int i = 0; i < systems.size(); i++)
@@ -841,6 +863,66 @@ namespace uei
         }
     }
 
+    void UEditorScene::ShowInputTab()
+    {
+        if (ImGui::BeginTabItem("Inputs"))
+        {
+            //if (ImGui::Button("Save Inputs"))
+            //{
+            //    SaveScene();
+            //}
+
+            ImGui::BeginChild("##InputTab", ImVec2(0, 0), true);
+
+            std::vector<std::string> keyNames;
+            std::vector<sf::Keyboard::Key> keys;
+            for (int i = 0; i < sf::Keyboard::KeyCount; i++)
+            {
+                sf::Keyboard::Key key = static_cast<sf::Keyboard::Key>(i);
+                keys.push_back(key);
+                sf::Keyboard::Scancode scanCode = sf::Keyboard::delocalize(key);
+                keyNames.push_back(sf::Keyboard::getDescription(scanCode).toAnsiString());
+            }
+
+            if (ImGui::BeginCombo("##PlayerInputs", " "))
+            {
+                for (int i = 0; i < keyNames.size(); i++)
+                {
+                    const bool isSelected = (assetTypeSelectedIndex == i);
+                    if (ImGui::Selectable(keyNames[i].c_str(), isSelected))
+                    {
+                        inputKeys[i][0] = '\0';
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            
+            //int i = 0;
+            for (auto& [keyIndex, value] : inputKeys)
+            {
+                ImGui::PushID(keyIndex);
+
+                sf::Keyboard::Key key = static_cast<sf::Keyboard::Key>(keyIndex);
+                ImGui::Text("Key ");
+                ImGui::SameLine();
+                sf::Keyboard::Scancode scanCode = sf::Keyboard::delocalize(key);
+                ImGui::Text(sf::Keyboard::getDescription(scanCode).toAnsiString().c_str());
+                ImGui::SameLine();
+                ImGui::Text(":: Label ");
+                ImGui::SameLine();
+                ImGui::PushItemWidth(60);
+                char inputNameBuffer[128] = "";
+                std::memcpy(inputNameBuffer, value.c_str(), value.size() + 1);
+                ImGui::InputText("##LabelKeyName", inputNameBuffer, IM_ARRAYSIZE(inputNameBuffer));
+                inputKeys[keyIndex] = std::string(inputNameBuffer);
+                ImGui::PopID();
+            }
+
+            ImGui::EndChild();
+            ImGui::EndTabItem();
+        }
+    }
+
     void UEditorScene::CreateScene()
     {
         std::string levelPath = "Assets/" + std::string(editorNameBuffer) + ".txt";
@@ -877,7 +959,7 @@ namespace uei
             std::string content;
             content.clear();
 
-            content = LEVEL + " " + std::to_string(gridColumns) + " " + std::to_string(gridRows) + " " + std::to_string(gridSize) + "\n";
+            content = LEVEL + " " + std::to_string(GridColumns) + " " + std::to_string(GridRows) + " " + std::to_string(GridSize) + "\n";
 
             /*for (const auto& [key, value] : prefabs)
             {
@@ -893,12 +975,18 @@ namespace uei
             {
                 CTransform* transform = e->GetComponent<CTransform>();
                 if (transform == nullptr) continue;
-                content += ENTITY + " " + e->Name() + " " + std::to_string(transform->GetPosition().x) + " " + std::to_string(transform->GetPosition().y) + "\n";
+                sf::Vector2i gridPosition = PositionToGrid(transform->GetPosition(), GridSize);
+                content += ENTITY + " " + e->Name() + " " + std::to_string(gridPosition.x) + " " + std::to_string(gridPosition.y) + "\n";
             }
 
             for (auto& e : systems)
             {
                 content += SYSTEM + " " + e->SystemName() + "\n";
+            }
+
+            for (auto& [e, n] : inputKeys)
+            {
+                content += PLAYER_INPUT + " " + std::to_string(e) + " " + n + "\n";
             }
 
             std::ofstream out(levelPath);
@@ -947,16 +1035,15 @@ namespace uei
         else 
         {
             sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-            sf::Vector2f gridMousePosition = sf::Vector2f((mousePosition.x / gridSize) * gridSize,
-                (mousePosition.y / gridSize) * gridSize);
+            sf::Vector2i gridMousePosition = PositionToGrid(mousePosition, GridSize);
 
             for (auto* e : entities)
             {
                 CTransform* transform = e->GetComponent<CTransform>();
                 if (transform != nullptr)
                 {
-                    if (transform->GetPosition().x == gridMousePosition.x &&
-                        transform->GetPosition().y == gridMousePosition.y)
+                    sf::Vector2i position = PositionToGrid(transform->GetPosition(), GridSize);
+                    if (position == gridMousePosition)
                     {
                         e->SetActive(false);
                         break;
@@ -965,46 +1052,38 @@ namespace uei
             }
         }
     }
+
     void UEditorScene::OnMouseLeft()
     {
         if (bPrefabSelected)
         {
+            CTransform* cTransform = prefab->GetComponent<CTransform>();
+            CSprite* cSprite = prefab->GetComponent<CSprite>();
+
             sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-            CSprite* sprite = prefab->GetComponent<CSprite>();
-            
-            int x = (mousePosition.x / gridSize) * gridSize;
-            int y = (mousePosition.y / gridSize) * gridSize;
 
-            AddEntity(prefab->Clone(), sf::Vector2f(x, y));
+            int x = (mousePosition.x / GridSize) * GridSize;
+            int y = (mousePosition.y / GridSize) * GridSize;
+
+            AddEntity(prefab->Clone(), sf::Vector2i(x, y));
         }
-        //else 
-        //{
-        //    sf::Vector2i mousePosition = sf::Mouse::getPosition(engine.RenderWindow());
-        //    int x = (mousePosition.x / gridSize) * gridSize;
-        //    int y = (mousePosition.y / gridSize) * gridSize;
-
-        //    int eColumns = (int)x / gridSize;
-        //    int eRows = (int)y / gridSize;
-        //}
     }
 }
 
-//REGISTER_COMPONENT(CTarget);
-//REGISTER_COMPONENT(CAnimation);
 REGISTER_COMPONENT(CAgent);
 REGISTER_COMPONENT(CNavGridModifier);
 REGISTER_COMPONENT(CPlayer);
 REGISTER_COMPONENT(CObstacle);
 REGISTER_COMPONENT(CStaticDraw);
 REGISTER_COMPONENT(CIdleAnimation);
-REGISTER_COMPONENT(CMovement);
+REGISTER_COMPONENT(CGridMovement);
 REGISTER_COMPONENT(CMovementAnimation);
 REGISTER_COMPONENT(CSprite);
 REGISTER_COMPONENT(CTransform);
 
 REGISTER_SYSTEM(SAnimationSystem);
 REGISTER_SYSTEM(SDrawSystem);
-REGISTER_SYSTEM(SMovementSystem);
+REGISTER_SYSTEM(SGridMovementSystem);
 REGISTER_SYSTEM(SPathfinderSystem);
 REGISTER_SYSTEM(SPathFollowSystem);
 REGISTER_SYSTEM(SPathRequestSystem);

@@ -4,17 +4,23 @@
 
 inline sf::Vector2i PositionToGrid(sf::Vector2f& position, int gridSize)
 {
-	return sf::Vector2i((int)((position.x + (gridSize * 0.5f)) / gridSize), (int)((position.y + (gridSize * 0.5f)) / gridSize));
+	return sf::Vector2i(position.x / gridSize, position.y / gridSize);
 }
 
-inline sf::Vector2f PositionToCenter(sf::Vector2f position, int gridSize)
+inline sf::Vector2i PositionToGrid(sf::Vector2i& position, int gridSize)
 {
-	return sf::Vector2f(position.x * gridSize + gridSize * 0.5f, position.y * gridSize + gridSize * 0.5f);
+	return sf::Vector2i(position.x / gridSize, position.y / gridSize);
 }
 
-inline sf::Vector2f GridToPosition(sf::Vector2i& position, int gridSize)
+inline sf::Vector2i GridToPosition(sf::Vector2i& position, int gridSize)
 {
-	return sf::Vector2f(position.x * gridSize + gridSize * 0.5f, position.y * gridSize + gridSize * 0.5f);
+	return sf::Vector2i(position.x * gridSize, position.y * gridSize);
+}
+
+inline float Distance(sf::Vector2i& positionA, sf::Vector2i& positionB)
+{
+	sf::Vector2i diff = positionB - positionA;
+	return std::sqrt(diff.x * diff.x + diff.y * diff.y);
 }
 
 namespace uei
@@ -25,15 +31,20 @@ namespace uei
 		CTransform();
 		~CTransform();
 
-		sf::Vector2f& GetPosition();
-		sf::Vector2f& GetPositionLastUpdate();
-		void SetPosition(const sf::Vector2f& inPosition);
-		bool IsMoving(const float threshold = 0.001f) const;
-		bool IsEqual(const sf::Vector2f& otherPosition, const float threshold = 0.001f) const;
+		sf::Vector2i& GetPosition() { return position; }
+		sf::Vector2i& GetPositionLastUpdate() { return positionLastUpdate; }
+		sf::Vector2i& GetGridPosition() { return gridPosition; }
+		sf::Vector2i& GetPivotPosition() { return pivotPosition; }
+		sf::Vector2i& GetPivotGridPosition() { return pivotGridPosition; }
+
+		void SetPosition(const sf::Vector2i& inPosition);
+		//bool IsMoving(const float threshold = 0.001f) const;
+		//bool IsEqual(const sf::Vector2i& otherPosition, const float threshold = 0.001f) const;
+		//float Distance(const sf::Vector2i& otherPosition) const;
 
 		UComponent* Clone() override
 		{
-			return new CTransform(originalPosition, position);
+			return new CTransform(originalPosition);
 		}
 
 		virtual void Start(class UEngine& engine) override;
@@ -41,12 +52,14 @@ namespace uei
 		inline std::string ComponentName() const override { return "CTransform"; }
 
 	private:
-		CTransform(const sf::Vector2f& inOriginalPosition, const sf::Vector2f& inPosition);
+		CTransform(const sf::Vector2i& inOriginalPosition);
 
-		sf::Vector2f originalPosition;
-		sf::Vector2f position;
-		sf::Vector2f positionLastUpdate;
-
+		sf::Vector2i originalPosition;
+		sf::Vector2i position;
+		sf::Vector2i positionLastUpdate;
+		sf::Vector2i gridPosition;
+		sf::Vector2i pivotPosition;
+		sf::Vector2i pivotGridPosition;
 	};
 
 

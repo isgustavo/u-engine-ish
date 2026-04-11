@@ -1,5 +1,6 @@
 #include "SDrawSystem.h"
 
+#include "UEngine.h"
 #include "components/CTransform.h"
 #include "components/CSprite.h"
 #include "components/CStaticDraw.h"
@@ -52,9 +53,7 @@ namespace uei
 
 		for (auto& [key, value] : transformMap)
 		{
-			if (!dirtyMap[key]) continue;
-
-			//std::cout << key << std::endl;
+			if (!dirtyMap[key] && !engine.CurrentScene()->IsEditorScene()) continue;
 
 			std::vector<CTransform*> transforms = value;
 			std::vector<CSprite*> sprites = spriteMap[key];
@@ -63,15 +62,16 @@ namespace uei
 			sf::VertexArray& vertexArray = vertexArrayMap[key];
 			for (int i = 0; i < transforms.size(); i++)
 			{
-				sf::Vector2f p = transforms[i]->GetPosition();
-				sf::Vector2i test = PositionToGrid(transforms[i]->GetPosition(), engine.CurrentScene()->GridSize());
-				p = GridToPosition(test, engine.CurrentScene()->GridSize());
+				//sf::Vector2f p = transforms[i]->GetPosition() - sf::Vector2f(engine.CurrentScene()->GridSize() * 0.5f, engine.CurrentScene()->GridSize() * 0.5f);
+				sf::Vector2i p = transforms[i]->GetPosition();
+				//sf::Vector2i test = PositionToGrid(p, engine.CurrentScene()->GridSize());
+				//p = GridPositionToCenter(test, engine.CurrentScene()->GridSize());
 
 				float left = p.x;
-				float right = p.x + engine.CurrentScene()->GridSize();
+				float right = p.x + uei::GridSize;
 
 				float top = p.y;
-				float bottom = p.y + engine.CurrentScene()->GridSize();
+				float bottom = p.y + uei::GridSize;
 
 				vertexArray[(i * 6) + 0].position = sf::Vector2f(left, top);
 				vertexArray[(i * 6) + 1].position = sf::Vector2f(right, top);

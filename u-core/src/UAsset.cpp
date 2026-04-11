@@ -129,7 +129,6 @@ namespace uei
 			out.close();
 		}
 	}
-	
 	void UAsset::LoadTextures()
 	{
 		for (const auto& t : std::filesystem::directory_iterator("Assets/Textures"))
@@ -210,10 +209,15 @@ namespace uei
 		auto it = animations.find(animationName);
 		return it->second;
 	}
-	const uei::UEntity& UAsset::GetPrefab(const std::string& prefabName) const
+	UEntity* UAsset::GetPrefab(const std::string& prefabName) const
 	{
 		auto it = prefabs.find(prefabName);
-		return *it->second;
+		if (it == prefabs.end())
+		{
+			std::cout << "ERROR:: GetPrefab name not exist -> " << prefabName << std::endl;
+			return nullptr;
+		}
+		return it->second;
 	}
 	
 	void UAsset::RemovePrefab(const std::string& prefabName)

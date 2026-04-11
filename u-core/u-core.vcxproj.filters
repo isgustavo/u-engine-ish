@@ -81,7 +81,7 @@
     <ClCompile Include="src\components\CMovementAnimation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\components\CMovement.cpp">
+    <ClCompile Include="src\components\CGridMovement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\components\CObstacle.cpp">
@@ -99,7 +99,7 @@
     <ClCompile Include="src\components\CStaticDraw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\systems\SMovementSystem.cpp">
+    <ClCompile Include="src\systems\SGridMovementSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\systems\SAnimationSystem.cpp">
@@ -533,7 +533,7 @@
     <ClInclude Include="src\components\CMovementAnimation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\CMovement.h">
+    <ClInclude Include="src\components\CGridMovement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\components\CPlayer.h">
@@ -548,7 +548,7 @@
     <ClInclude Include="src\components\CStaticDraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\systems\SMovementSystem.h">
+    <ClInclude Include="src\systems\SGridMovementSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\systems\SAnimationSystem.h">

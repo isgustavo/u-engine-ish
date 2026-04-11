@@ -7,9 +7,6 @@ namespace uei
 {
 	CTarget::CTarget() : UComponent()
 	{
-	}
 
-	void CTarget::ShowEditor(UEngine& inEngine, std::function<void()> onRemove)
-	{
 	}
 }

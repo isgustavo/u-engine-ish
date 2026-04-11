@@ -7,7 +7,7 @@
 #include <sstream>
 #include <imgui.h>
 #include "CSprite.h"
-#include "CMovement.h"
+#include "CGridMovement.h"
 #include "CIdleAnimation.h"
 
 namespace uei
@@ -123,14 +123,14 @@ namespace uei
 	{
 		entity.SetRequiredByOtherComponent<CSprite>(true);
 		entity.SetRequiredByOtherComponent<CIdleAnimation>(true);
-		entity.SetRequiredByOtherComponent<CMovement>(true);
+		entity.SetRequiredByOtherComponent<CGridMovement>(true);
 	}
 
 	void CMovementAnimation::OnComponentRemove(UEntity& entity)
 	{
 		entity.SetRequiredByOtherComponent<CSprite>(false);
 		entity.SetRequiredByOtherComponent<CIdleAnimation>(false);
-		entity.SetRequiredByOtherComponent<CMovement>(false);
+		entity.SetRequiredByOtherComponent<CGridMovement>(false);
 	}
 
 	std::string CMovementAnimation::GetAnimation(EMovement movement)

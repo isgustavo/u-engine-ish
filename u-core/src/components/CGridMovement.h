@@ -32,29 +32,35 @@ inline EGrid StringToGrid(std::string grid)
 
 namespace uei
 {
-	class CMovement : public UComponent
+	class CGridMovement : public UComponent
 	{
 	public:
-		CMovement();
-		~CMovement();
+		CGridMovement();
+		~CGridMovement();
+
+		float GetLerpTime() const { return gridMovementLerpTime; }
+		void UpdateLerpTime(float value) { gridMovementLerpTime += value; }
+		sf::Vector2i& GetGridStartMovement() { return gridStartMovement; }
+		sf::Vector2i& GetGridTargetMovement() { return gridTargetMovement; }
 
 		EGrid GridMovement() const { return gridMovement; }
 		EMovement GetLastMovement() const { return lastMovement; }
 		EMovement GetCurrentMovement() const { return currentMovement; }
-		void SetCurrentMovement(EMovement movement) 
-		{
-			lastMovement = currentMovement;
-			currentMovement = movement; 
-		}
+		EMovement GetValidMovement() const { return currentMovement == EMovement::NONE ? lastMovement : currentMovement; }
+
+		bool IsStop() { return stop; }
+		void SetStop(bool v) { stop = v; }
+
+		void SetNextMovement(sf::Vector2i& startPosition, sf::Vector2i& currentPosition, EMovement movement);
 
 		std::vector<sf::Vector2i> GetValidGridMovement() const;
 
 		UComponent* Clone() override
 		{
-			return new CMovement(gridMovement);
+			return new CGridMovement(gridMovement);
 		}
 
-		inline std::string ComponentName() const override { return "CMovement"; }
+		inline std::string ComponentName() const override { return "CGridMovement"; }
 		
 		void LoadComponent(std::istream & in) override;
 		std::string SaveComponent() const override;
@@ -64,10 +70,14 @@ namespace uei
 		int GetEditorSize() const override;
 
 	private:
-		CMovement(EGrid inGridMovement);
+		CGridMovement(EGrid inGridMovement);
 
+		bool stop;
 		EGrid gridMovement;
 		EMovement lastMovement;
 		EMovement currentMovement;
+		float gridMovementLerpTime = 2.0f;
+		sf::Vector2i gridStartMovement;
+		sf::Vector2i gridTargetMovement;
 	};
 }

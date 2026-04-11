@@ -6,7 +6,7 @@
 
 namespace uei
 {
-	CNavGridModifier::CNavGridModifier() : UComponent()
+	CNavGridModifier::CNavGridModifier() : UComponent(), startColumn(0), columns(1), startRow(0), rows(1), weight(0)
 	{
 
 	}

@@ -12,7 +12,5 @@ namespace uei
 	public:
 
 		CTarget();
-
-		virtual void ShowEditor(UEngine& inEngine, std::function<void()> onRemove) override;
 	};
 }

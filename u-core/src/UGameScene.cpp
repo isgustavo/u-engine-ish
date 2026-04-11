@@ -1,14 +1,10 @@
 #include "UGameScene.h"
-#include <systems/SDrawSystem.h>
-#include <systems/SAnimationSystem.h>
-#include <systems/SMovementSystem.h>
-#include <systems/SPathfinderSystem.h>
-#include <systems/SPathFollowSystem.h>
 
 namespace uei 
 {
     UGameScene::UGameScene(UEngine& inEngine, std::string levelName) : UScene(inEngine, levelName)
     {
+
     }
 
     UGameScene::~UGameScene()
@@ -17,7 +13,16 @@ namespace uei
 
     void UGameScene::OnStart()
     {
-        bShowNavGrid = false;
+        bShowNavGrid = true;
+    }
+
+    void UGameScene::OnInput(const std::optional<class sf::Event> event)
+    {
+        for (auto& [inputIndex, lable] : inputKeys)
+        {
+            sf::Keyboard::Key key = static_cast<sf::Keyboard::Key>(inputIndex);
+            currentPlayerInput.SetInput(key, sf::Keyboard::isKeyPressed(key));
+        }
     }
 
     void UGameScene::OnUpdate(float deltaTime)
@@ -27,7 +32,7 @@ namespace uei
 
     void UGameScene::OnDraw()
     {
-        DrawGrid();
+
     }
 
     void UGameScene::OnMouseLeft()

@@ -6,13 +6,14 @@
 #include <components/CPath.h>
 #include <components/CTransform.h>
 #include <components/CMovementAnimation.h>
-#include <components/CMovement.h>
+#include <components/CGridMovement.h>
 #include <components/CNavGridModifier.h>
 #include <components/CPlayer.h>
 
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <UScene.h>
 
 
 namespace uei
@@ -44,25 +45,25 @@ namespace uei
 			auto* cPathRequest = e->GetComponent<CPathRequest>();
 			if (cPathRequest == nullptr) continue;
 
-			auto* cMovement = e->GetComponent<CMovement>();
+			auto* cMovement = e->GetComponent<CGridMovement>();
 			if (cMovement == nullptr) continue;
 
 			auto* cTransform = e->GetComponent<CTransform>();
 			if (cTransform == nullptr) continue;
 
-			sf::Vector2i targetGripPosition = PositionToGrid(cPathRequest->TargetPosition(), engine.CurrentScene()->GridSize());
-			sf::Vector2i targetGridPositionClamp = sf::Vector2i(std::clamp(targetGripPosition.x, 0, engine.CurrentScene()->GridColumns()-1),
-				std::clamp(targetGripPosition.y, 0, engine.CurrentScene()->GridRows()-1));
+			sf::Vector2i targetGripPosition = PositionToGrid(cPathRequest->TargetPosition(), uei::GridSize);
+			sf::Vector2i targetGridPositionClamp = sf::Vector2i(std::clamp(targetGripPosition.x, 0, uei::GridColumns-1),
+				std::clamp(targetGripPosition.y, 0, uei::GridRows-1));
 
 			CPath* path = e->GetOrAddComponent<CPath>();
 			path->SetPath(FindPath(engine.CurrentScene()->GetNavGrid(),
 					targetGridPositionClamp,
-					PositionToGrid(cTransform->GetPosition(), engine.CurrentScene()->GridSize()),
+					PositionToGrid(cTransform->GetPosition(), uei::GridSize),
 					cPathRequest->GetInitialInvalidGridMovement(),
 					cMovement->GetValidGridMovement(),
 					1,
 					1,
-					engine.CurrentScene()->GridColumns()));
+					uei::GridColumns));
 
 			e->RemoveComponent<uei::CPathRequest>();
 		}
@@ -123,8 +124,7 @@ namespace uei
 				}
 
 				const sf::Vector2i newCoordinate(currentNode->position + agentValidGridMovement[i]);
-				if (IsOutOfNavGrid(inNavGrid, targetIndex, currentNode->position, agentValidGridMovement[i], 
-					agentGridColumn, agentGridRow, gridColumns) ||
+				if (IsOutOfNavGrid(inNavGrid, targetIndex, currentNode->position, agentValidGridMovement[i], agentGridColumn, agentGridRow, gridColumns) ||
 					FindNode(closeVector, newCoordinate))
 				{
 					continue;
@@ -152,7 +152,7 @@ namespace uei
 		std::vector<sf::Vector2i> path;
 		while (currentNode != nullptr)
 		{
-			if (inNavGrid[(currentNode->position.y * gridColumns) + currentNode->position.x] < 100)
+			if (inNavGrid[(currentNode->position.y * gridColumns) + currentNode->position.x] < 1000)
 			{
 				path.push_back(currentNode->position);
 			}
@@ -199,7 +199,7 @@ namespace uei
 					return true;
 				}
 
-				if (inNavGrid[currentIndex] == 100)
+				if (inNavGrid[currentIndex] == 1000)
 				{
 					if (currentIndex == targetIndex) 
 						return false;

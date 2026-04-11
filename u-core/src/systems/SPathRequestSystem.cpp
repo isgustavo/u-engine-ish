@@ -1,4 +1,5 @@
 #include "SPathRequestSystem.h"
+#include <UEngine.h>
 #include <components/CAgent.h>
 #include <components/CPathRequest.h>
 #include <components/CPath.h>

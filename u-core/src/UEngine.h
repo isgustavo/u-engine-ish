@@ -20,9 +20,12 @@ inline const std::string SPRITE = "Sprite";
 inline const std::string ANIMATION = "Animation";
 inline const std::string FONT = "Font";
 inline const std::string SYSTEM = "System";
+inline const std::string PLAYER_INPUT = "Input";
 inline const std::string COMPONENT = "Component";
 inline const std::string ENTITY = "Entity";
 inline const std::string EMPTY = "Empty";
+
+inline const float NAV_GRID_BLOCKER = 1000.0f;
 
 namespace uei
 {

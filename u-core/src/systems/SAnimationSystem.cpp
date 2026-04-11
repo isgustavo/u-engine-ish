@@ -4,7 +4,7 @@
 #include "components/CMovementAnimation.h"
 #include "components/CIdleAnimation.h"
 #include "components/CSprite.cpp"
-#include "components/CMovement.h"
+#include "components/CGridMovement.h"
 #include "UEngine.h"
 
 namespace uei
@@ -23,7 +23,7 @@ namespace uei
 
 			if (cIdleAnimation == nullptr || cMovementAnimation == nullptr) continue;
 
-			auto* cMovement = e->GetComponent<CMovement>();
+			auto* cMovement = e->GetComponent<CGridMovement>();
 			auto* cSprite = e->GetComponent<uei::CSprite>();
 
 			if (cMovement == nullptr || cIdleAnimation == nullptr || cMovementAnimation == nullptr || cSprite == nullptr) continue;
